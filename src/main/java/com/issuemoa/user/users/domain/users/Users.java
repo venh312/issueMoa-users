@@ -5,16 +5,23 @@ import com.issuemoa.user.users.domain.BaseTime;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.LocalDateTime;
+import java.util.Collection;
 
+@DynamicInsert
 @NoArgsConstructor
 @Getter
 @Entity(name = "users")
-public class Users extends BaseTime {
+public class Users extends BaseTime implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
@@ -38,6 +45,59 @@ public class Users extends BaseTime {
         this.tempYn = tempYn;
         this.dropYn = dropYn;
         this.lastLoginTime = lastLoginTime;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
+
+    @Setter
+    @Getter
+    public static class Request {
+        private Long id;
+        private String email;
+        private String passsword;
+        private String addr;
+        private String addrPostNo;
+        private String tempYn;
+        private String dropYn;
+
+        public Users toEntity() {
+            return Users.builder()
+                    .email(this.email)
+                    .password(this.passsword)
+                    .addr(this.addr)
+                    .addrPostNo(this.addrPostNo)
+                    .tempYn(this.tempYn)
+                    .dropYn(this.dropYn)
+                    .build();
+        }
     }
 
     @Getter

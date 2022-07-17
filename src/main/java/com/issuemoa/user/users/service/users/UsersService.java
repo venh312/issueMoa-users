@@ -5,12 +5,12 @@ import com.issuemoa.user.users.domain.users.Users;
 import com.issuemoa.user.users.domain.users.UsersRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -20,14 +20,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class UsersService implements UserDetailsService {
-
     private final UsersRepository usersRepository;
     private final JPAQueryFactory jpaQueryFactory;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private QUsers users = QUsers.users;
 
     public Long save(Users.Request request) {
-        request.setPasssword(bCryptPasswordEncoder.encode(request.getPasssword()));
+        request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
         return usersRepository.save(request.toEntity()).getId();
     }
 
@@ -61,14 +60,24 @@ public class UsersService implements UserDetailsService {
         return new Users.Response(usersRepository.findById(id).get());
     }
 
+    public Users findByEmail(String email) {
+        return usersRepository.findByEmail(email).get();
+    }
+
+    public int countByEmail(String email) {
+        return usersRepository.countByEmail(email);
+    }
+
+    @Transactional
     public long updateUsersPassword(Users.Request request) {
         return jpaQueryFactory.update(users)
-                .set(users.password, bCryptPasswordEncoder.encode(request.getPasssword()))
+                .set(users.password, bCryptPasswordEncoder.encode(request.getPassword()))
                 .set(users.modifyTime, LocalDateTime.now())
                 .where(users.id.eq(request.getId()))
                 .execute();
     }
 
+    @Transactional
     public long updateUsersInfo(Users.Request request) {
         return jpaQueryFactory.update(users)
                 .set(users.addr, request.getAddr())
@@ -78,13 +87,7 @@ public class UsersService implements UserDetailsService {
                 .execute();
     }
 
-    public long updateLastLoginTime(String email) {
-        return jpaQueryFactory.update(users)
-                .set(users.lastLoginTime, LocalDateTime.now())
-                .where(users.email.eq(email))
-                .execute();
-    }
-
+    @Transactional
     public long updateTempYn(Users.Request request) {
         return jpaQueryFactory.update(users)
                 .set(users.dropYn, request.getTempYn())
@@ -93,6 +96,7 @@ public class UsersService implements UserDetailsService {
                 .execute();
     }
 
+    @Transactional
     public long updateDropYn(Users.Request request) {
         return jpaQueryFactory.update(users)
                 .set(users.dropYn, request.getDropYn())
@@ -101,16 +105,8 @@ public class UsersService implements UserDetailsService {
                 .execute();
     }
 
-    public int countByEmail(String email) {
-        return usersRepository.countByEmail(email);
-    }
-
-    public Users findByEmail(String email) {
-        return usersRepository.findByEmail(email).get();
-    }
-
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return usersRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("#UsernameNotFoundException"));
+        return usersRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("==> UsernameNotFoundException"));
     }
 }

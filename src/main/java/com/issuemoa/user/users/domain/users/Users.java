@@ -15,6 +15,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 
 @DynamicInsert
@@ -49,7 +50,11 @@ public class Users extends BaseTime implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        Collection<GrantedAuthority> collectors = new ArrayList<>();
+        collectors.add(() -> {
+            return "ROLE_HNEV";
+        });
+        return collectors;
     }
 
     @Override
@@ -59,22 +64,22 @@ public class Users extends BaseTime implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
 
     @Setter
@@ -82,7 +87,7 @@ public class Users extends BaseTime implements UserDetails {
     public static class Request {
         private Long id;
         private String email;
-        private String passsword;
+        private String password;
         private String addr;
         private String addrPostNo;
         private String tempYn;
@@ -91,7 +96,7 @@ public class Users extends BaseTime implements UserDetails {
         public Users toEntity() {
             return Users.builder()
                     .email(this.email)
-                    .password(this.passsword)
+                    .password(this.password)
                     .addr(this.addr)
                     .addrPostNo(this.addrPostNo)
                     .tempYn(this.tempYn)

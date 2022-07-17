@@ -1,7 +1,7 @@
 package com.issuemoa.user.users.config;
 
 import com.issuemoa.user.users.handler.AuthFailureHandler;
-import com.issuemoa.user.users.handler.AuthSucessHandler;
+import com.issuemoa.user.users.handler.AuthSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 @Configuration
 public class SecurityConfig {
 
-    private final AuthSucessHandler authSucessHandler;
+    private final AuthSuccessHandler authSuccessHandler;
     private final AuthFailureHandler authFailureHandler;
 
     @Bean
@@ -32,8 +32,10 @@ public class SecurityConfig {
         http.authorizeRequests()
                 .mvcMatchers("/users/my-page/**").authenticated();
         http.formLogin()
+                .usernameParameter("email")
+                .passwordParameter("password")
                 .loginProcessingUrl("/users/login")
-                .successHandler(authSucessHandler)
+                .successHandler(authSuccessHandler)
                 .failureHandler(authFailureHandler);
         http.logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))

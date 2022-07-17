@@ -1,6 +1,8 @@
 package com.issuemoa.user.users.handler;
 
+import com.issuemoa.user.users.domain.users.UsersRepository;
 import com.issuemoa.user.users.message.RestMessage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -18,8 +20,11 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
+@RequiredArgsConstructor
 @Component
 public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
+
+    private final UsersRepository usersRepository;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
@@ -35,11 +40,13 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
             msg = "BadCredentialsException account";
         }
 
+        usersRepository.updateFailLogin(request.getParameter("email"));
+
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
             HashMap<String, String> resultMap = new HashMap<>();
             resultMap.put("code", "IVLGN");
             resultMap.put("msg", msg);
-            bw.write(new RestMessage(HttpStatus.OK, resultMap).toString());
+            bw.write(resultMap.toString());
         }
     }
 }

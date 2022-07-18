@@ -1,23 +1,20 @@
 package com.issuemoa.user.users.handler;
 
 import com.issuemoa.user.users.domain.users.UsersRepository;
-import com.issuemoa.user.users.message.RestMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 @RequiredArgsConstructor
@@ -42,11 +39,12 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
         usersRepository.updateFailLogin(request.getParameter("email"));
 
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
-            HashMap<String, String> resultMap = new HashMap<>();
-            resultMap.put("code", "IVLGN");
-            resultMap.put("msg", msg);
-            bw.write(resultMap.toString());
-        }
+        MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
+        HashMap<String, String> resultMap = new HashMap<>();
+
+        resultMap.put("code", "IV_LGN");
+        resultMap.put("msg", msg);
+
+        jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
     }
 }

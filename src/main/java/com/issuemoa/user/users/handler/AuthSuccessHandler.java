@@ -1,20 +1,23 @@
 package com.issuemoa.user.users.handler;
 
+import com.issuemoa.user.users.common.CookieUtil;
+import com.issuemoa.user.users.domain.users.Users;
 import com.issuemoa.user.users.domain.users.UsersRepository;
 import com.issuemoa.user.users.jwt.TokenProvider;
-import com.issuemoa.user.users.message.RestMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 
 @RequiredArgsConstructor
@@ -22,23 +25,47 @@ import java.util.HashMap;
 public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UsersRepository usersRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final TokenProvider tokenProvider;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         usersRepository.updateLastLoginTime(authentication.getName());
 
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
+        HashMap<String, Object> tokenMap =  tokenProvider.generateToken(authentication);
+        HashMap<String, Object> resultMap = new HashMap<>();
+        MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
 
-            HashMap<String, Object> tokenMap =  new TokenProvider().generateTokenDto(authentication);
-            HashMap<String, Object> resultMap = new HashMap<>();
+        Users users = usersRepository.findByEmail(authentication.getName()).get();
 
-            resultMap.put("code", "LGN");
-            resultMap.put("accessToken", tokenMap.get("accessToken"));
-            resultMap.put("accessTokenExpires", tokenMap.get("accessToken"));
-            resultMap.put("refreshToken", tokenMap.get("refreshToken"));
-
-            bw.write(resultMap.toString());
+        if (users.getLoginFailCnt() > 4) {
+            resultMap.put("code", "FF_LGN");
+            resultMap.put("msg", "Login failed 5 times");
+            jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
+            return;
         }
+
+        if ("Y".equals(users.getDropYn())) {
+            resultMap.put("code", "DEL_LGN");
+            resultMap.put("msg", "Withdrawal user");
+            jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
+            return;
+        }
+
+        resultMap.put("code", "LGN");
+        resultMap.put("msg", "Success login");
+        resultMap.put("accessToken", tokenMap.get("accessToken"));
+        resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
+
+        String refreshToken = (String) tokenMap.get("refreshToken");
+
+        // Redis Set Data - refreshToken
+        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
+        vop.set(authentication.getName(), refreshToken, Duration.ofSeconds(Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+
+        response.addCookie(CookieUtil.setRefreshTokenCookie(refreshToken, Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+
+        jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
     }
 }

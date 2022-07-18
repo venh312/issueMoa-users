@@ -1,22 +1,35 @@
 package com.issuemoa.user.users.service.users;
 
+import com.issuemoa.user.users.common.CookieUtil;
 import com.issuemoa.user.users.domain.users.QUsers;
 import com.issuemoa.user.users.domain.users.Users;
 import com.issuemoa.user.users.domain.users.UsersRepository;
+import com.issuemoa.user.users.jwt.TokenProvider;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpHeaders;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class UsersService implements UserDetailsService {
@@ -24,6 +37,8 @@ public class UsersService implements UserDetailsService {
     private final JPAQueryFactory jpaQueryFactory;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private QUsers users = QUsers.users;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final TokenProvider tokenProvider;
 
     public Long save(Users.Request request) {
         request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
@@ -108,5 +123,51 @@ public class UsersService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return usersRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("==> UsernameNotFoundException"));
+    }
+
+    /**
+     Access Token + Refresh Token을  검증하고 Redis의 refreshToken 값이 만료전이면
+    해당 인증 정보를 가지고 새로운 토큰을 생성한다. */
+    public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
+
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer"))
+            bearerToken = bearerToken.substring(7);
+        else
+            throw new RuntimeException("==> Empty Access Token.");
+
+        Cookie[] cookies = request.getCookies();
+
+        String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
+
+        log.info("==> Reissue bearerToken : {}", bearerToken);
+        log.info("==> Reissue refreshToken : {}", refreshToken);
+
+        Authentication authentication = tokenProvider.getAuthentication(bearerToken);
+
+        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
+        String redisRefreshToken = (String) vop.get(authentication.getName());
+
+        if (!StringUtils.hasText(redisRefreshToken))
+            throw new RuntimeException("==> logged out user.");
+
+        if (!redisRefreshToken.equals(refreshToken))
+            throw new RuntimeException("==> The information in the token does not match.");
+
+        HashMap<String, Object> tokenMap = tokenProvider.generateToken(authentication);
+
+        // Redis Set Key-Value
+        vop.set(authentication.getName(), tokenMap.get("refreshToken"), Duration.ofSeconds(Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+
+        // Add Cookie Refersh Token
+        response.addCookie(CookieUtil.setRefreshTokenCookie(refreshToken, Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+
+        resultMap.put("accessToken", tokenMap.get("accessToken"));
+        resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
+
+        return resultMap;
     }
 }

@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 @RequiredArgsConstructor
 @RequestMapping("/users")
 @Controller
@@ -31,11 +34,11 @@ public class UsersController {
                 .body(new RestMessage(HttpStatus.OK, usersService.countByEmail(email)));
     }
 
-    @GetMapping("/my-page/detail")
-    public ResponseEntity<RestMessage> findById(@RequestParam Long id) throws Exception {
+    @PostMapping("/my-page/detail")
+    public ResponseEntity<RestMessage> findById(Users.Request request) throws Exception {
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
-                .body(new RestMessage(HttpStatus.OK, usersService.findById(id)));
+                .body(new RestMessage(HttpStatus.OK, usersService.findById(request.getId())));
     }
 
     @PostMapping("/my-page/update-info")
@@ -57,5 +60,12 @@ public class UsersController {
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
                 .body(new RestMessage(HttpStatus.OK, usersService.updateDropYn(request)));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<RestMessage> reissue(HttpServletRequest request, HttpServletResponse response) {
+        return ResponseEntity.ok()
+                .headers(new HttpHeaders())
+                .body(new RestMessage(HttpStatus.OK, usersService.reissue(request, response)));
     }
 }

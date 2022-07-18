@@ -26,11 +26,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        /*http.authorizeRequests()
-                .mvcMatchers("/", "/users/**", "/error/**", "/js/**", "/css/**", "/image/**").permitAll() // 해당 경로들은 접근을 허용
-                .anyRequest().authenticated(); // 그 외 요청은 인증요구*/
-        http.authorizeRequests()
-                .mvcMatchers("/users/my-page/**").authenticated();
         http.formLogin()
                 .usernameParameter("email")
                 .passwordParameter("password")
@@ -40,7 +35,7 @@ public class SecurityConfig {
         http.logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
                 .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID", "remember-me")
+                .deleteCookies("JSESSIONID", "refreshToken")
                 .logoutSuccessHandler((request, response, authentication) -> {
                     response.setStatus(HttpServletResponse.SC_OK);
                 });

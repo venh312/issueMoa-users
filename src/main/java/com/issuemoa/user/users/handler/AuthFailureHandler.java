@@ -28,7 +28,6 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
         String msg = "Invalid Email or Password";
 
-        // exception 관련 메세지 처리
         if (exception instanceof DisabledException) {
             msg = "DisabledException account";
         } else if(exception instanceof CredentialsExpiredException) {
@@ -39,12 +38,10 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
         usersRepository.updateFailLogin(request.getParameter("email"));
 
-        MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
         HashMap<String, String> resultMap = new HashMap<>();
-
         resultMap.put("code", "IV_LGN");
         resultMap.put("msg", msg);
 
-        jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
+        new MappingJackson2HttpMessageConverter().write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
     }
 }

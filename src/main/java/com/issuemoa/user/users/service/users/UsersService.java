@@ -134,10 +134,11 @@ public class UsersService implements UserDetailsService {
 
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer"))
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
             bearerToken = bearerToken.substring(7);
-        else
+        } else {
             throw new RuntimeException("==> Empty Access Token.");
+        }
 
         Cookie[] cookies = request.getCookies();
 
@@ -151,22 +152,24 @@ public class UsersService implements UserDetailsService {
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
         String redisRefreshToken = (String) vop.get(authentication.getName());
 
-        if (!StringUtils.hasText(redisRefreshToken))
+        if (!StringUtils.hasText(redisRefreshToken)) {
             throw new RuntimeException("==> logged out user.");
+        }
 
-        if (!redisRefreshToken.equals(refreshToken))
+        if (!redisRefreshToken.equals(refreshToken)) {
             throw new RuntimeException("==> The information in the token does not match.");
+        }
 
         HashMap<String, Object> tokenMap = tokenProvider.generateToken(authentication);
 
-        // Redis Set Key-Value
-        vop.set(authentication.getName(), tokenMap.get("refreshToken"), Duration.ofSeconds(Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
-
-        // Add Cookie Refersh Token
-        response.addCookie(CookieUtil.setRefreshTokenCookie(refreshToken, Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
-
         resultMap.put("accessToken", tokenMap.get("accessToken"));
         resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
+
+        // Redis Set Key-Value
+        vop.set(authentication.getName(), tokenMap.get("accessTokenExpires"), Duration.ofSeconds(Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+
+        // Add Cookie Refersh Token
+        response.addCookie(CookieUtil.setRefreshTokenCookie((String) tokenMap.get("accessTokenExpires"), Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
 
         return resultMap;
     }

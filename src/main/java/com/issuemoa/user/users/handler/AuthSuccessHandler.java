@@ -40,14 +40,14 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         Users users = usersRepository.findByEmail(authentication.getName()).get();
 
         if (users.getLoginFailCnt() > 4) {
-            resultMap.put("code", "FF_LGN");
+            resultMap.put("code", "LOCK_LGN");
             resultMap.put("msg", "Login failed 5 times");
             jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
             return;
         }
 
         if ("Y".equals(users.getDropYn())) {
-            resultMap.put("code", "DEL_LGN");
+            resultMap.put("code", "DROP_LGN");
             resultMap.put("msg", "Withdrawal user");
             jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
             return;

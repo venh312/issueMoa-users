@@ -4,6 +4,9 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -106,19 +109,21 @@ public class TokenProvider {
         return null;
     }
 
-    public boolean validateToken(String token) {
+    public HashMap<String, Object> validateToken(String token) {
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("flag", false);
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
+            resultMap.put("flag", true);
         } catch (io.jsonwebtoken.security.SignatureException | MalformedJwtException e) {
-            log.info("==> SignatureException ValidateToken.");
+            resultMap.put("validMsg", "SignatureException ValidateToken.");
         } catch (ExpiredJwtException e) {
-            log.info("==> ExpiredJwtException ValidateToken.");
+            resultMap.put("validMsg", "ExpiredJwtException ValidateToken.");
         } catch (UnsupportedJwtException e) {
-            log.info("==> UnsupportedJwtException ValidateToken.");
+            resultMap.put("validMsg", "UnsupportedJwtException ValidateToken.");
         } catch (IllegalArgumentException e) {
-            log.info("==> IllegalArgumentException ValidateToken.");
+            resultMap.put("validMsg", "IllegalArgumentException ValidateToken.");
         }
-        return false;
+        return resultMap;
     }
 }

@@ -17,3 +17,8 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
+
+
+api:
+  endpoint:
+    bookmarkFindByUserId: http://localhost:17070/support/bookmark/findByUserId

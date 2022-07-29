@@ -1,22 +1,19 @@
 package com.issuemoa.user.users.jwt;
 
+import com.issuemoa.user.users.domain.users.Users;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,12 +25,12 @@ import java.util.stream.Collectors;
 @Component
 public class TokenProvider {
     private static final String AUTHORITIES_KEY = "auth";
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;    // 30분
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24;  // 1일
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 1;    // 30분
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;  // 7일
     private final Key key;
 
-    public TokenProvider() {
-        byte[] keyBytes = "A6DA7C3505374816027061D61B960BD4F052ABFF02768EFCD5E029B0B73928C3".getBytes(StandardCharsets.UTF_8);
+    public TokenProvider(@Value("${jwt.secret}") String secret) {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -48,9 +45,11 @@ public class TokenProvider {
 
         Date date = new Date();
         Date accessTokenExpires = new Date(date.getTime() + ACCESS_TOKEN_EXPIRE_TIME);
+        Users getDetails = (Users) authentication.getPrincipal();
 
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())       // payload "sub": "username"
+                .claim("id", getDetails.getId())      // payload "id": "1"
                 .claim(AUTHORITIES_KEY, authorities)        // payload "auth": "ROLE_VENH"
                 .setExpiration(accessTokenExpires)          // payload "exp": 1516239022
                 .signWith(key, SignatureAlgorithm.HS512)    // header "alg": "HS512"
@@ -66,9 +65,9 @@ public class TokenProvider {
         HashMap<String, Object> tokenMap = new HashMap<>();
 
         tokenMap.put("accessToken", accessToken);
-        tokenMap.put("accessTokenExpires", String.valueOf(accessTokenExpires.getTime()));
+        tokenMap.put("accessTokenExpires", String.valueOf(ACCESS_TOKEN_EXPIRE_TIME / 1000));
         tokenMap.put("refreshToken", refreshToken);
-        tokenMap.put("refreshTokenExpires", String.valueOf(refreshTokenExpires.getTime()));
+        tokenMap.put("refreshTokenExpires", String.valueOf(REFRESH_TOKEN_EXPIRE_TIME / 1000));
 
         return tokenMap;
     }
@@ -87,9 +86,14 @@ public class TokenProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        UserDetails principal = new User(claims.getSubject(),"", authorities);
+        int id = (int) claims.get("id");
 
-        return new UsernamePasswordAuthenticationToken(principal,"", authorities);
+        Users users = Users.builder()
+                .email(claims.getSubject())
+                .id((long) id)
+                .build();
+
+        return new UsernamePasswordAuthenticationToken(users,"", authorities);
     }
 
     private Claims parseClaims(String accessToken) {
@@ -110,20 +114,30 @@ public class TokenProvider {
     }
 
     public HashMap<String, Object> validateToken(String token) {
+        log.info("==> validateToken : {}", token);
+
         HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("flag", false);
+
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            resultMap.put("code", "TK_OK");
             resultMap.put("flag", true);
+            resultMap.put("claims", claims);
         } catch (io.jsonwebtoken.security.SignatureException | MalformedJwtException e) {
-            resultMap.put("validMsg", "SignatureException ValidateToken.");
+            resultMap.put("code", "TK_SI");
+            log.info("==> validateToken : {}", "SignatureException ValidateToken.");
         } catch (ExpiredJwtException e) {
-            resultMap.put("validMsg", "ExpiredJwtException ValidateToken.");
+            resultMap.put("code", "TK_EX");
+            log.info("==> validateToken : {}", "ExpiredJwtException ValidateToken.");
         } catch (UnsupportedJwtException e) {
-            resultMap.put("validMsg", "UnsupportedJwtException ValidateToken.");
+            resultMap.put("code", "TK_UN");
+            log.info("==> validateToken : {}", "UnsupportedJwtException ValidateToken.");
         } catch (IllegalArgumentException e) {
-            resultMap.put("validMsg", "IllegalArgumentException ValidateToken.");
+            resultMap.put("code", "TK_IL");
+            log.info("==> validateToken : {}", "IllegalArgumentException ValidateToken.");
         }
+
         return resultMap;
     }
 }

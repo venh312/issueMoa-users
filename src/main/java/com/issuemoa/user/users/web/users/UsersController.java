@@ -1,8 +1,11 @@
 package com.issuemoa.user.users.web.users;
 
+import com.issuemoa.user.users.common.HttpApiUtil;
+import com.issuemoa.user.users.common.RequestUtil;
 import com.issuemoa.user.users.domain.users.Users;
 import com.issuemoa.user.users.message.RestMessage;
 import com.issuemoa.user.users.service.users.UsersService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
@@ -19,32 +25,45 @@ import java.util.HashMap;
 @RequestMapping("/users")
 @Controller
 public class UsersController {
-
     private final UsersService usersService;
-
     @Value("${api.endpoint.bookmarkFindByUserId}")
     private String bookmarkFindByUserIdEndpoint;
+    @Value("${api.endpoint.recaptchaSiteVerify}")
+    private String recaptchaSiteVerifyEndpoint;
+    @Value("${api.secret.recaptcha}")
+    private String secretRecaptcha;
 
     @PostMapping("/save")
-    public ResponseEntity<RestMessage> save(Users.Request request) {
+    public ResponseEntity<RestMessage> save(Users.Request request) throws Exception{
+        String url = recaptchaSiteVerifyEndpoint + "?secret=" + secretRecaptcha + "&response=" + request.getRecaptchaValue();
+        HashMap<String, Object> recaptchaMap = new HttpApiUtil().getDataFromJson(
+                url, "UTF-8", "post", "", "application/x-www-form-urlencoded");
+        boolean recaptchaResult = (boolean) recaptchaMap.get("success");
+        Long resultSave = 0L;
+
+        if (recaptchaResult) {
+            resultSave = usersService.save(request);
+        }
+
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
-                .body(new RestMessage(HttpStatus.OK, usersService.save(request)));
+                .body(new RestMessage(HttpStatus.OK, resultSave));
     }
 
-    @GetMapping("/count-by/email")
-    public ResponseEntity<RestMessage> findById(@RequestParam String email) {
+    @PostMapping("/count-by/email")
+    public ResponseEntity<RestMessage> countByEmail(Users.Request request) {
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
-                .body(new RestMessage(HttpStatus.OK, usersService.countByEmail(email)));
+                .body(new RestMessage(HttpStatus.OK, usersService.countByEmail(request.getEmail())));
     }
 
     @PostMapping("/my-page/index")
-    public ResponseEntity<RestMessage> getMyPageIndex(Users.Request request) {
+    public ResponseEntity<RestMessage> getMyPageIndex() {
         RestTemplate restTemplate = new RestTemplate();
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("userInfo", usersService.findById(request.getId()));
-        resultMap.put("bookmarkList", restTemplate.getForObject(bookmarkFindByUserIdEndpoint+"?userId=" + request.getId(), String.class));
+
+        resultMap.put("userInfo", usersService.findById(RequestUtil.getUserId()));
+        resultMap.put("bookmarkList", restTemplate.getForObject(bookmarkFindByUserIdEndpoint+"?userId=" + RequestUtil.getUserId(), String.class));
 
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())

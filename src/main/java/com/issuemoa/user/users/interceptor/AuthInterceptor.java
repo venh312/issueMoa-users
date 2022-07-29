@@ -8,6 +8,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,19 +25,22 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         log.info("==> HandlerInterceptor preHandle.");
-        boolean flag = false;
         String token = tokenProvider.resolveToken(request);
-        String validMsg = "Empty ValidateToken.";
+        String validCode = "TK_EM";
+        boolean validFlag = false;
 
         if (StringUtils.hasText(token)) {
-            HashMap<String,Object> resultMap = tokenProvider.validateToken(token);
-            flag = (boolean) resultMap.get("flag");
-            if (resultMap.get("validMsg") != null) {
-                validMsg = (String) resultMap.get("validMsg");
-            }
+            HashMap<String,Object> tokenMap = tokenProvider.validateToken(token);
+            validFlag = (boolean) tokenMap.get("flag");
+            validCode = (String) tokenMap.get("validMsg");
+            RequestContextHolder.getRequestAttributes().setAttribute("claims", tokenMap.get("claims"), RequestAttributes.SCOPE_REQUEST);
         }
 
-        new MappingJackson2HttpMessageConverter().write(validMsg, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
-        return flag;
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("validCode", validFlag);
+        resultMap.put("validFlag", validCode);
+
+        new MappingJackson2HttpMessageConverter().write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
+        return validFlag;
     }
 }

@@ -59,12 +59,14 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
 
         String refreshToken = (String) tokenMap.get("refreshToken");
+        long refreshExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
 
         // Redis Set Data - refreshToken
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        vop.set(authentication.getName(), refreshToken, Duration.ofSeconds(Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+        vop.set(authentication.getName(), refreshToken, Duration.ofSeconds(refreshExpires));
 
-        response.addCookie(CookieUtil.setRefreshTokenCookie(refreshToken, Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+        // Cookie Set Data - refreshToken
+        response.addCookie(CookieUtil.setRefreshTokenCookie(refreshToken, refreshExpires));
 
         jsonConverter.write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
     }

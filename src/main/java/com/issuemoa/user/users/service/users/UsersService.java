@@ -153,7 +153,7 @@ public class UsersService implements UserDetailsService {
         String redisRefreshToken = (String) vop.get(authentication.getName());
 
         if (!StringUtils.hasText(redisRefreshToken)) {
-            throw new RuntimeException("==> logged out user.");
+            throw new RuntimeException("==> [Expires] logged out user. ");
         }
 
         if (!redisRefreshToken.equals(refreshToken)) {
@@ -165,11 +165,14 @@ public class UsersService implements UserDetailsService {
         resultMap.put("accessToken", tokenMap.get("accessToken"));
         resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
 
+        String newRefreshToken = (String) tokenMap.get("refreshToken");
+        long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
+
         // Redis Set Key-Value
-        vop.set(authentication.getName(), tokenMap.get("accessTokenExpires"), Duration.ofSeconds(Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+        vop.set(authentication.getName(), newRefreshToken, Duration.ofSeconds(newRefreshTokenExpires));
 
         // Add Cookie Refersh Token
-        response.addCookie(CookieUtil.setRefreshTokenCookie((String) tokenMap.get("accessTokenExpires"), Long.parseLong((String) tokenMap.get("refreshTokenExpires"))));
+        response.addCookie(CookieUtil.setRefreshTokenCookie((String) newRefreshToken, newRefreshTokenExpires));
 
         return resultMap;
     }

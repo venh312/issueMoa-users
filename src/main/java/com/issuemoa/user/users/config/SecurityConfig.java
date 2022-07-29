@@ -39,7 +39,6 @@ public class SecurityConfig {
                 .logoutSuccessHandler((request, response, authentication) -> {
                     response.setStatus(HttpServletResponse.SC_OK);
                 });
-
         return http.build();
     }
 }

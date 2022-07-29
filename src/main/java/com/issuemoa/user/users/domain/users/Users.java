@@ -9,7 +9,6 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -28,6 +27,8 @@ public class Users extends BaseTime implements UserDetails {
     private Long id;
     private String email;
     private String password;
+    private String lastName;
+    private String firstName;
     private int loginFailCnt;
     private String addr;
     private String addrPostNo;
@@ -36,10 +37,12 @@ public class Users extends BaseTime implements UserDetails {
     private LocalDateTime lastLoginTime;
 
     @Builder
-    public Users(Long id, String email, String password, int loginFailCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
+    public Users(Long id, String email, String password, String lastName, String firstName, int loginFailCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
         this.id = id;
         this.email = email;
         this.password = password;
+        this.lastName = lastName;
+        this.firstName = firstName;
         this.loginFailCnt = loginFailCnt;
         this.addr = addr;
         this.addrPostNo = addrPostNo;
@@ -88,20 +91,40 @@ public class Users extends BaseTime implements UserDetails {
         private Long id;
         private String email;
         private String password;
+        private String lastName;
+        private String firstName;
         private String addr;
         private String addrPostNo;
         private String tempYn;
         private String dropYn;
+        private String recaptchaValue;
 
         public Users toEntity() {
             return Users.builder()
                     .email(this.email)
                     .password(this.password)
+                    .lastName(lastName)
+                    .firstName(firstName)
                     .addr(this.addr)
                     .addrPostNo(this.addrPostNo)
                     .tempYn(this.tempYn)
                     .dropYn(this.dropYn)
                     .build();
+        }
+
+        @Override
+        public String toString() {
+            return "Request{" +
+                    "id=" + id +
+                    ", email='" + email + '\'' +
+                    ", password='" + password + '\'' +
+                    ", lastName='" + lastName + '\'' +
+                    ", firstName='" + firstName + '\'' +
+                    ", addr='" + addr + '\'' +
+                    ", addrPostNo='" + addrPostNo + '\'' +
+                    ", tempYn='" + tempYn + '\'' +
+                    ", dropYn='" + dropYn + '\'' +
+                    '}';
         }
     }
 
@@ -109,6 +132,8 @@ public class Users extends BaseTime implements UserDetails {
     public static class Response {
         private Long id;
         private String email;
+        private String lastName;
+        private String firstName;
         private String addr;
         private String addrPostNo;
         private String tempYn;
@@ -121,6 +146,8 @@ public class Users extends BaseTime implements UserDetails {
             Users users = (Users) o;
             this.id = users.id;
             this.email = users.email;
+            this.lastName = users.lastName;
+            this.firstName = users.firstName;
             this.addr = users.addr;
             this.addrPostNo = users.addrPostNo;
             this.tempYn = users.tempYn;

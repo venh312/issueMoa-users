@@ -30,6 +30,7 @@ public class Users extends BaseTime implements UserDetails {
     private String lastName;
     private String firstName;
     private int loginFailCnt;
+    private int visitCnt;
     private String addr;
     private String addrPostNo;
     private String tempYn;
@@ -37,13 +38,14 @@ public class Users extends BaseTime implements UserDetails {
     private LocalDateTime lastLoginTime;
 
     @Builder
-    public Users(Long id, String email, String password, String lastName, String firstName, int loginFailCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
+    public Users(Long id, String email, String password, String lastName, String firstName, int loginFailCnt, int visitCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.lastName = lastName;
         this.firstName = firstName;
         this.loginFailCnt = loginFailCnt;
+        this.visitCnt = visitCnt;
         this.addr = addr;
         this.addrPostNo = addrPostNo;
         this.tempYn = tempYn;
@@ -134,6 +136,7 @@ public class Users extends BaseTime implements UserDetails {
         private String email;
         private String lastName;
         private String firstName;
+        private int visitCnt;
         private String addr;
         private String addrPostNo;
         private String tempYn;
@@ -148,6 +151,7 @@ public class Users extends BaseTime implements UserDetails {
             this.email = users.email;
             this.lastName = users.lastName;
             this.firstName = users.firstName;
+            this.visitCnt = users.visitCnt;
             this.addr = users.addr;
             this.addrPostNo = users.addrPostNo;
             this.tempYn = users.tempYn;

@@ -32,15 +32,18 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (StringUtils.hasText(token)) {
             HashMap<String,Object> tokenMap = tokenProvider.validateToken(token);
             validFlag = (boolean) tokenMap.get("flag");
-            validCode = (String) tokenMap.get("validMsg");
+            validCode = (String) tokenMap.get("code");
             RequestContextHolder.getRequestAttributes().setAttribute("claims", tokenMap.get("claims"), RequestAttributes.SCOPE_REQUEST);
         }
 
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("validCode", validFlag);
-        resultMap.put("validFlag", validCode);
+        resultMap.put("validCode", validCode);
+        resultMap.put("validFlag", validFlag);
 
-        new MappingJackson2HttpMessageConverter().write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
+        if (!validFlag) {
+            new MappingJackson2HttpMessageConverter().write(resultMap, MediaType.APPLICATION_JSON, new ServletServerHttpResponse(response));
+        }
+
         return validFlag;
     }
 }

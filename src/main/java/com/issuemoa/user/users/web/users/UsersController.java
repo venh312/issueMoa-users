@@ -60,10 +60,10 @@ public class UsersController {
     @PostMapping("/my-page/index")
     public ResponseEntity<RestMessage> getMyPageIndex() {
         RestTemplate restTemplate = new RestTemplate();
-        HashMap<String, Object> resultMap = new HashMap<>();
+        HashMap<Object, Object> resultMap = new HashMap<>();
 
         resultMap.put("userInfo", usersService.findById(RequestUtil.getUserId()));
-        resultMap.put("bookmarkList", restTemplate.getForObject(bookmarkFindByUserIdEndpoint+"?userId=" + RequestUtil.getUserId(), String.class));
+        resultMap.put("bookmarkList", restTemplate.getForObject(bookmarkFindByUserIdEndpoint + "?userId=" + RequestUtil.getUserId(), Object.class));
 
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())

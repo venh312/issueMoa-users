@@ -19,6 +19,6 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
 
     @Transactional
     @Modifying
-    @Query(value = "update users set login_fail_cnt = 0, last_login_time = now(), modify_time = now() where email = :email", nativeQuery = true)
+    @Query(value = "update users set login_fail_cnt = 0, visit_cnt = visit_cnt + 1, last_login_time = now(), modify_time = now() where email = :email", nativeQuery = true)
     public int updateLastLoginTime(@Param("email") String email);
 }

@@ -14,8 +14,8 @@ public class RequestUtil {
         return claims;
     }
 
-    public static Long getUserId() {
-        return (Long) getClaims().get("id");
+    public static long getUserId() {
+        return (long) ((int) getClaims().get("id"));
     }
 
     public static String getUserEmail() {

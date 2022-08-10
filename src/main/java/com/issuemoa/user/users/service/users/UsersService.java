@@ -84,7 +84,7 @@ public class UsersService implements UserDetailsService {
     }
 
     @Transactional
-    public long updateUsersPassword(Users.Request request) {
+    public long updatePassword(Users.Request request) {
         return jpaQueryFactory.update(users)
                 .set(users.password, bCryptPasswordEncoder.encode(request.getPassword()))
                 .set(users.modifyTime, LocalDateTime.now())
@@ -120,6 +120,26 @@ public class UsersService implements UserDetailsService {
                 .execute();
     }
 
+    @Transactional
+    public long updateName(Users.Request request) {
+        return jpaQueryFactory.update(users)
+                .set(users.lastName, request.getLastName())
+                .set(users.firstName, request.getFirstName())
+                .set(users.modifyTime, LocalDateTime.now())
+                .where(users.id.eq(request.getId()))
+                .execute();
+    }
+
+    @Transactional
+    public long updateAddress(Users.Request request) {
+        return jpaQueryFactory.update(users)
+                .set(users.addr, request.getAddr())
+                .set(users.addrPostNo, request.getAddrPostNo())
+                .set(users.modifyTime, LocalDateTime.now())
+                .where(users.id.eq(request.getId()))
+                .execute();
+    }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return usersRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("==> UsernameNotFoundException"));
@@ -145,12 +165,14 @@ public class UsersService implements UserDetailsService {
         String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
 
         log.info("==> Reissue bearerToken : {}", bearerToken);
-        log.info("==> Reissue refreshToken : {}", refreshToken);
 
         Authentication authentication = tokenProvider.getAuthentication(bearerToken);
 
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
         String redisRefreshToken = (String) vop.get(authentication.getName());
+
+        log.info("==> Reissue refreshToken : {}", refreshToken);
+        log.info("==> Reissue redisRefreshToken : {}", redisRefreshToken);
 
         if (!StringUtils.hasText(redisRefreshToken)) {
             throw new RuntimeException("==> [Expires] logged out user. ");

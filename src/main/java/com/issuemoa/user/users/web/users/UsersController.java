@@ -85,10 +85,10 @@ public class UsersController {
     }
 
     @PostMapping("/my-page/update-password")
-    public ResponseEntity<RestMessage> updateUsersPassword(Users.Request request) {
+    public ResponseEntity<RestMessage> updatePassword(Users.Request request) {
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
-                .body(new RestMessage(HttpStatus.OK, usersService.updateUsersPassword(request)));
+                .body(new RestMessage(HttpStatus.OK, usersService.updatePassword(request)));
     }
 
     @PostMapping("/my-page/update-drop")
@@ -96,6 +96,20 @@ public class UsersController {
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
                 .body(new RestMessage(HttpStatus.OK, usersService.updateDropYn(request)));
+    }
+
+    @PostMapping("/my-page/update-name")
+    public ResponseEntity<RestMessage> updateName(Users.Request request) {
+        return ResponseEntity.ok()
+                .headers(new HttpHeaders())
+                .body(new RestMessage(HttpStatus.OK, usersService.updateName(request)));
+    }
+
+    @PostMapping("/my-page/update-address")
+    public ResponseEntity<RestMessage> updateAddress(Users.Request request) {
+        return ResponseEntity.ok()
+                .headers(new HttpHeaders())
+                .body(new RestMessage(HttpStatus.OK, usersService.updateAddress(request)));
     }
 
     @PostMapping("/reissue")

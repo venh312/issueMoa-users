@@ -164,22 +164,19 @@ public class UsersService implements UserDetailsService {
 
         String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
 
-        log.info("==> Reissue bearerToken : {}", bearerToken);
+        log.info("==> [Reissue] bearerToken : {}", bearerToken);
 
         Authentication authentication = tokenProvider.getAuthentication(bearerToken);
 
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        String redisRefreshToken = (String) vop.get(authentication.getName());
+        String redisRefreshTokenEmail = (String) vop.get(refreshToken);
 
-        log.info("==> Reissue refreshToken : {}", refreshToken);
-        log.info("==> Reissue redisRefreshToken : {}", redisRefreshToken);
-
-        if (!StringUtils.hasText(redisRefreshToken)) {
-            throw new RuntimeException("==> [Expires] logged out user. ");
+        if (!StringUtils.hasText(redisRefreshTokenEmail)) {
+            throw new RuntimeException("==> [Reissue Expires] logged out user. ");
         }
 
-        if (!redisRefreshToken.equals(refreshToken)) {
-            throw new RuntimeException("==> The information in the token does not match.");
+        if (!redisRefreshTokenEmail.equals(authentication.getName())) {
+            throw new RuntimeException("==> [Reissue] The information in the token does not match.");
         }
 
         HashMap<String, Object> tokenMap = tokenProvider.generateToken(authentication);
@@ -191,7 +188,9 @@ public class UsersService implements UserDetailsService {
         long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
 
         // Redis Set Key-Value
-        vop.set(authentication.getName(), newRefreshToken, Duration.ofSeconds(newRefreshTokenExpires));
+        vop.set(newRefreshToken, authentication.getName(), Duration.ofSeconds(newRefreshTokenExpires));
+        // 기존 refershToken은 3초 후 만료
+        vop.set(refreshToken, "", Duration.ofSeconds(3));
 
         // Add Cookie Refersh Token
         response.addCookie(CookieUtil.setRefreshTokenCookie((String) newRefreshToken, newRefreshTokenExpires));

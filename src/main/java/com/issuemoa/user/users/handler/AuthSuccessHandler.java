@@ -63,7 +63,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         // Redis Set Data - refreshToken
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        vop.set(authentication.getName(), refreshToken, Duration.ofSeconds(refreshExpires));
+        vop.set(refreshToken, authentication.getName(), Duration.ofSeconds(refreshExpires));
 
         // Cookie Set Data - refreshToken
         response.addCookie(CookieUtil.setRefreshTokenCookie(refreshToken, refreshExpires));

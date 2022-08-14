@@ -19,7 +19,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -79,8 +78,8 @@ public class UsersService implements UserDetailsService {
         return usersRepository.findByEmail(email).get();
     }
 
-    public int countByEmail(String email) {
-        return usersRepository.countByEmail(email);
+    public int countByEmailAndType(String email, String type) {
+        return usersRepository.countByEmailAndType(email, type);
     }
 
     @Transactional

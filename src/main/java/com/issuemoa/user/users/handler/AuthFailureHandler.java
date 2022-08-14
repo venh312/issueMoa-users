@@ -36,7 +36,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
             msg = "BadCredentialsException account";
         }
 
-        usersRepository.updateFailLogin(request.getParameter("email"));
+        usersRepository.updateFailLogin(request.getParameter("email"), "HOME");
 
         HashMap<String, String> resultMap = new HashMap<>();
         resultMap.put("code", "IV_LGN");

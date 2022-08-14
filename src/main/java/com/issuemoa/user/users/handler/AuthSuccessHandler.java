@@ -31,13 +31,13 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
-        usersRepository.updateLastLoginTime(authentication.getName());
+        Users users = (Users) authentication.getPrincipal();
 
         HashMap<String, Object> tokenMap =  tokenProvider.generateToken(authentication);
         HashMap<String, Object> resultMap = new HashMap<>();
         MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
 
-        Users users = usersRepository.findByEmail(authentication.getName()).get();
+        usersRepository.updateLastLoginTime(users.getId());
 
         if (users.getLoginFailCnt() > 4) {
             resultMap.put("code", "LOCK_LGN");

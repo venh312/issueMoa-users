@@ -27,6 +27,7 @@ public class Users extends BaseTime implements UserDetails {
     private Long id;
     private String email;
     private String password;
+    private String type;
     private String lastName;
     private String firstName;
     private int loginFailCnt;
@@ -38,10 +39,11 @@ public class Users extends BaseTime implements UserDetails {
     private LocalDateTime lastLoginTime;
 
     @Builder
-    public Users(Long id, String email, String password, String lastName, String firstName, int loginFailCnt, int visitCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
+    public Users(Long id, String email, String password, String type, String lastName, String firstName, int loginFailCnt, int visitCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
         this.id = id;
         this.email = email;
         this.password = password;
+        this.type = type;
         this.lastName = lastName;
         this.firstName = firstName;
         this.loginFailCnt = loginFailCnt;
@@ -93,6 +95,7 @@ public class Users extends BaseTime implements UserDetails {
         private Long id;
         private String email;
         private String password;
+        private String type;
         private String lastName;
         private String firstName;
         private String addr;
@@ -105,6 +108,7 @@ public class Users extends BaseTime implements UserDetails {
             return Users.builder()
                     .email(this.email)
                     .password(this.password)
+                    .type(this.type)
                     .lastName(lastName)
                     .firstName(firstName)
                     .addr(this.addr)
@@ -112,21 +116,6 @@ public class Users extends BaseTime implements UserDetails {
                     .tempYn(this.tempYn)
                     .dropYn(this.dropYn)
                     .build();
-        }
-
-        @Override
-        public String toString() {
-            return "Request{" +
-                    "id=" + id +
-                    ", email='" + email + '\'' +
-                    ", password='" + password + '\'' +
-                    ", lastName='" + lastName + '\'' +
-                    ", firstName='" + firstName + '\'' +
-                    ", addr='" + addr + '\'' +
-                    ", addrPostNo='" + addrPostNo + '\'' +
-                    ", tempYn='" + tempYn + '\'' +
-                    ", dropYn='" + dropYn + '\'' +
-                    '}';
         }
     }
 

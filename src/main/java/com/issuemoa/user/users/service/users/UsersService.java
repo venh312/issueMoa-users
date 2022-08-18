@@ -1,6 +1,7 @@
 package com.issuemoa.user.users.service.users;
 
 import com.issuemoa.user.users.common.CookieUtil;
+import com.issuemoa.user.users.common.LoginComponent;
 import com.issuemoa.user.users.domain.users.QUsers;
 import com.issuemoa.user.users.domain.users.Users;
 import com.issuemoa.user.users.domain.users.UsersRepository;
@@ -22,10 +23,12 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,6 +41,7 @@ public class UsersService implements UserDetailsService {
     private QUsers users = QUsers.users;
     private final RedisTemplate<String, Object> redisTemplate;
     private final TokenProvider tokenProvider;
+    private final LoginComponent loginComponent;
 
     public Long save(Users.Request request) {
         request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
@@ -74,12 +78,17 @@ public class UsersService implements UserDetailsService {
         return new Users.Response(usersRepository.findById(id).get());
     }
 
-    public Users findByEmail(String email) {
-        return usersRepository.findByEmail(email).get();
-    }
-
     public int countByEmailAndType(String email, String type) {
         return usersRepository.countByEmailAndType(email, type);
+    }
+
+    public boolean findBySocialId(String socialId, HttpServletResponse response) throws IOException {
+        Optional<Users> users = usersRepository.findBySocialId(socialId);
+        if (users.isPresent()) {
+            loginComponent.onSuccess(users.get(), response);
+            return true;
+        }
+        return false;
     }
 
     @Transactional
@@ -156,14 +165,12 @@ public class UsersService implements UserDetailsService {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
             bearerToken = bearerToken.substring(7);
         } else {
-            throw new RuntimeException("==> Empty Access Token.");
+            throw new RuntimeException("==> [Reissue] Empty Access Token.");
         }
 
         Cookie[] cookies = request.getCookies();
 
         String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
-
-        log.info("==> [Reissue] bearerToken : {}", bearerToken);
 
         Authentication authentication = tokenProvider.getAuthentication(bearerToken);
 
@@ -178,7 +185,13 @@ public class UsersService implements UserDetailsService {
             throw new RuntimeException("==> [Reissue] The information in the token does not match.");
         }
 
-        HashMap<String, Object> tokenMap = tokenProvider.generateToken(authentication);
+        Users details = (Users) authentication.getPrincipal();
+        Users users = Users.builder()
+                .email(authentication.getName())
+                .id(details.getId())
+                .build();
+
+        HashMap<String, Object> tokenMap = tokenProvider.generateToken(users);
 
         resultMap.put("accessToken", tokenMap.get("accessToken"));
         resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));

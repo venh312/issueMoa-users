@@ -38,19 +38,18 @@ public class TokenProvider {
      유저 정보로 Access Token 과 Refresh Token 을 생성한다.
      Access Token 에는 유저와 권한 정보를 담고 Refresh Token 에는 아무 정보도 담지 않는다.
      **/
-    public HashMap<String, Object> generateToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+    public HashMap<String, Object> generateToken(Users users) {
+//        String authorities = authentication.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.joining(","));
 
         Date date = new Date();
         Date accessTokenExpires = new Date(date.getTime() + ACCESS_TOKEN_EXPIRE_TIME);
-        Users getDetails = (Users) authentication.getPrincipal();
 
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())       // payload "sub": "username"
-                .claim("id", getDetails.getId())      // payload "id": "1"
-                .claim(AUTHORITIES_KEY, authorities)        // payload "auth": "ROLE_VENH"
+                .setSubject(users.getEmail())               // payload "sub": "username"
+                .claim("id", users.getId())           // payload "id": "1"
+                .claim(AUTHORITIES_KEY, "ISSUEMOA_USER")           // payload "auth": "ROLE_VENH"
                 .setExpiration(accessTokenExpires)          // payload "exp": 1516239022
                 .signWith(key, SignatureAlgorithm.HS512)    // header "alg": "HS512"
                 .compact();

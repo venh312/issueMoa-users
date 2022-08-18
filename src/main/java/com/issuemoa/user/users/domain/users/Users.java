@@ -26,6 +26,7 @@ public class Users extends BaseTime implements UserDetails {
     @Id
     private Long id;
     private String email;
+    private String socialId;
     private String password;
     private String type;
     private String lastName;
@@ -39,9 +40,10 @@ public class Users extends BaseTime implements UserDetails {
     private LocalDateTime lastLoginTime;
 
     @Builder
-    public Users(Long id, String email, String password, String type, String lastName, String firstName, int loginFailCnt, int visitCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
+    public Users(Long id, String email, String socialId, String password, String type, String lastName, String firstName, int loginFailCnt, int visitCnt, String addr, String addrPostNo, String tempYn, String dropYn, LocalDateTime lastLoginTime) {
         this.id = id;
         this.email = email;
+        this.socialId = socialId;
         this.password = password;
         this.type = type;
         this.lastName = lastName;
@@ -94,6 +96,7 @@ public class Users extends BaseTime implements UserDetails {
     public static class Request {
         private Long id;
         private String email;
+        private String socialId;
         private String password;
         private String type;
         private String lastName;
@@ -107,6 +110,7 @@ public class Users extends BaseTime implements UserDetails {
         public Users toEntity() {
             return Users.builder()
                     .email(this.email)
+                    .socialId(this.socialId)
                     .password(this.password)
                     .type(this.type)
                     .lastName(lastName)
@@ -123,6 +127,7 @@ public class Users extends BaseTime implements UserDetails {
     public static class Response {
         private Long id;
         private String email;
+        private String socialId;
         private String lastName;
         private String firstName;
         private int visitCnt;
@@ -138,6 +143,7 @@ public class Users extends BaseTime implements UserDetails {
             Users users = (Users) o;
             this.id = users.id;
             this.email = users.email;
+            this.socialId = users.socialId;
             this.lastName = users.lastName;
             this.firstName = users.firstName;
             this.visitCnt = users.visitCnt;

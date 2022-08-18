@@ -53,6 +53,13 @@ public class UsersController {
                 .body(new RestMessage(HttpStatus.OK, usersService.countByEmailAndType(request.getEmail(), request.getType())));
     }
 
+    @PostMapping("/find-by/social-id")
+    public ResponseEntity<RestMessage> findBySocialId(Users.Request request, HttpServletResponse response) throws Exception {
+        return ResponseEntity.ok()
+                .headers(new HttpHeaders())
+                .body(new RestMessage(HttpStatus.OK, usersService.findBySocialId(request.getSocialId(), response)));
+    }
+
     @PostMapping("/my-page/index")
     public ResponseEntity<RestMessage> getMyPageIndex() {
         RestTemplate restTemplate = new RestTemplate();

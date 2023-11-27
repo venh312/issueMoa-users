@@ -1,8 +1,8 @@
 server:
-  port: 17080
+  port: 17070
 spring:
   application:
-    name: issuemoaUserUsers
+    name: issueMoaUsers
   profiles:
     active: dev
   config:

@@ -32,9 +32,6 @@ public class TokenProvider {
      Access Token 에는 유저와 권한 정보를 담고 Refresh Token 에는 아무 정보도 담지 않는다.
      **/
     public HashMap<String, Object> generateToken(Users users) {
-//        String authorities = authentication.getAuthorities().stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.joining(","));
         Date date = new Date();
         Date accessTokenExpires = new Date(date.getTime() + ACCESS_TOKEN_EXPIRE_TIME);
 
@@ -55,11 +52,6 @@ public class TokenProvider {
 
         HashMap<String, Object> tokenMap = new HashMap<>();
 
-        log.info("<========= generateToken START =========> ");
-        log.info(" accessToken = {}", accessToken);
-        log.info(" id = {}", users.getId());
-        log.info("<========= generateToken END =========> ");
-
         tokenMap.put("accessToken", accessToken);
         tokenMap.put("accessTokenExpires", String.valueOf(ACCESS_TOKEN_EXPIRE_TIME / 1000));
         tokenMap.put("refreshToken", refreshToken);
@@ -67,73 +59,58 @@ public class TokenProvider {
 
         return tokenMap;
     }
-//
-//    /**
-//     AccessToken 토큰을 복호화하여 얻은 정보로 Authentication 생성
-//     토큰 정보로 인증 정보를 생성하기 위해 사용한다. */
-//    public Authentication getAuthentication(String accessToken) {
-//
-//        Claims claims = parseClaims(accessToken);
-//
-//        if (claims.get(AUTHORITIES_KEY) == null) throw new NullPointerException("==> Token is Not authorized.");
-//
-//        // 클레임에서 권한 정보 가져오기
-//        Collection<GrantedAuthority> authorities = Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-//                .map(SimpleGrantedAuthority::new)
-//                .collect(Collectors.toList());
-//
-//        int id = (int) claims.get("id");
-//
-//        Users users = Users.builder()
-//                .email(claims.getSubject())
-//                .id((long) id)
-//                .build();
-//
-//        return new UsernamePasswordAuthenticationToken(users,"", authorities);
-//    }
+
+    /**
+     AccessToken 토큰을 복호화하여 얻은 정보로 Authentication 생성
+     토큰 정보로 인증 정보를 생성하기 위해 사용한다. */
+    public Users getUserInfo(String accessToken) {
+
+        Claims claims = parseClaims(accessToken);
+
+        if (claims.get(AUTHORITIES_KEY) == null)
+            throw new NullPointerException("==> Token is Not authorized.");
+
+        log.info("==> getUsers: claims: {}", claims);
+        int id = (int) claims.get("id");
+        return Users.builder()
+            .email(claims.getSubject())
+            .id((long) id)
+            .build();
+    }
 
     private Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims();
-        }
-    }
-
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
-            log.info("==> BearerToken : {}", bearerToken);
-            return bearerToken.substring(7);
+        } catch (Exception e) {
+            log.error("==> [parseClaims]  :: {}", e.getMessage());
         }
         return null;
     }
 
-    public HashMap<String, Object> validateToken(String token) {
-        log.info("==> validateToken : {}", token);
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        log.info("==> BearerToken : {}", bearerToken);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer"))
+            return bearerToken.substring(7);
+        return null;
+    }
 
-        HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("flag", false);
+    public boolean validateToken(String token) {
+        log.info("==> validateToken : {}", token);
 
         try {
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-            resultMap.put("code", "TK_OK");
-            resultMap.put("flag", true);
-            resultMap.put("claims", claims);
+            return true;
         } catch (io.jsonwebtoken.security.SignatureException | MalformedJwtException e) {
-            resultMap.put("code", "TK_SI");
             log.info("==> validateToken : {}", "SignatureException ValidateToken.");
         } catch (ExpiredJwtException e) {
-            resultMap.put("code", "TK_EX");
             log.info("==> validateToken : {}", "ExpiredJwtException ValidateToken.");
         } catch (UnsupportedJwtException e) {
-            resultMap.put("code", "TK_UN");
             log.info("==> validateToken : {}", "UnsupportedJwtException ValidateToken.");
         } catch (IllegalArgumentException e) {
-            resultMap.put("code", "TK_IL");
             log.info("==> validateToken : {}", "IllegalArgumentException ValidateToken.");
         }
 
-        return resultMap;
+        return false;
     }
 }

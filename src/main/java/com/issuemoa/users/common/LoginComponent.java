@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
+import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.HashMap;
 
@@ -17,13 +18,12 @@ public class LoginComponent {
     private final RedisTemplate<String, Object> redisTemplate;
     private final TokenProvider tokenProvider;
 
-    public HashMap<String, Object> onSuccess(Users users) {
+    public HashMap<String, Object> onSuccess(Users users, HttpServletResponse response) {
         HashMap<String, Object> tokenMap =  tokenProvider.generateToken(users);
         HashMap<String, Object> resultMap = new HashMap<>();
 
         usersRepository.updateLastLoginTime(users.getId());
 
-        resultMap.put("code", "LGN");
         resultMap.put("msg", "Success");
         resultMap.put("accessToken", tokenMap.get("accessToken"));
         resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
@@ -34,6 +34,8 @@ public class LoginComponent {
         // Redis Set Data - refreshToken
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
         vop.set(refreshToken, users.getEmail(), Duration.ofSeconds(refreshExpires));
+
+        response.addCookie(CookieUtil.setRefreshTokenCookie((String) refreshToken, refreshExpires));
 
         return resultMap;
     }

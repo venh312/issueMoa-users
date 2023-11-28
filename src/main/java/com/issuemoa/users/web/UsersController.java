@@ -28,7 +28,7 @@ public class UsersController {
     private String secretRecaptcha;
 
     @PostMapping("/users/signIn")
-    public ResponseEntity<RestMessage> signIn(@RequestBody Users.Request request) throws Exception {
+    public ResponseEntity<RestMessage> signIn(@RequestBody Users.Request request, HttpServletResponse response) {
         HashMap<String, Object> result = new HashMap<>();
         boolean isExists = true;
 
@@ -42,7 +42,7 @@ public class UsersController {
         }
 
         if (isExists)
-            result = loginComponent.onSuccess(user);
+            result = loginComponent.onSuccess(user, response);
 
 //        String url = recaptchaSiteVerifyEndpoint + "?secret=" + secretRecaptcha + "&response=" + request.getRecaptchaValue();
 //        HashMap<String, Object> recaptchaMap = new HttpApiUtil().getDataFromJson(
@@ -55,14 +55,22 @@ public class UsersController {
 //        }
 //
         return ResponseEntity.ok()
-                .headers(new HttpHeaders())
-                .body(new RestMessage(HttpStatus.OK, result));
+            .headers(new HttpHeaders())
+            .body(new RestMessage(HttpStatus.OK, result));
    }
 
-    @PostMapping("/reissue")
+    @PostMapping("/users/reissue")
     public ResponseEntity<RestMessage> reissue(HttpServletRequest request, HttpServletResponse response) {
         return ResponseEntity.ok()
-                .headers(new HttpHeaders())
-                .body(new RestMessage(HttpStatus.OK, usersService.reissue(request, response)));
+            .headers(new HttpHeaders())
+            .body(new RestMessage(HttpStatus.OK, usersService.reissue(request, response)));
     }
+
+    @GetMapping("/users/info")
+    public ResponseEntity<RestMessage> getUsersId(HttpServletRequest request) {
+        return ResponseEntity.ok()
+            .headers(new HttpHeaders())
+            .body(new RestMessage(HttpStatus.OK, usersService.getUserInfo(request)));
+    }
+
 }

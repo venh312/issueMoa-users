@@ -8,7 +8,6 @@ import com.issuemoa.users.jwt.TokenProvider;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -49,54 +48,55 @@ public class UsersService {
     해당 인증 정보를 가지고 새로운 토큰을 생성한다. */
     public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
         HashMap<String, Object> resultMap = new HashMap<>();
-//
-//        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-//
-//        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
-//            bearerToken = bearerToken.substring(7);
-//        } else {
-//            throw new RuntimeException("==> [Reissue] Empty Access Token.");
-//        }
-//
-//        Cookie[] cookies = request.getCookies();
-//
-//        String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
-//
-//        Authentication authentication = tokenProvider.getAuthentication(bearerToken);
-//
-//        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-//        String redisRefreshTokenEmail = (String) vop.get(refreshToken);
-//
-//        if (!StringUtils.hasText(redisRefreshTokenEmail)) {
-//            throw new RuntimeException("==> [Reissue Expires] logged out user. ");
-//        }
-//
-//        if (!redisRefreshTokenEmail.equals(authentication.getName())) {
-//            throw new RuntimeException("==> [Reissue] The information in the token does not match.");
-//        }
-//
-//        Users details = (Users) authentication.getPrincipal();
-//        Users users = Users.builder()
-//                .email(authentication.getName())
-//                .id(details.getId())
-//                .build();
-//
-//        HashMap<String, Object> tokenMap = tokenProvider.generateToken(users);
-//
-//        resultMap.put("accessToken", tokenMap.get("accessToken"));
-//        resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
-//
-//        String newRefreshToken = (String) tokenMap.get("refreshToken");
-//        long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
-//
-//        // Redis Set Key-Value
-//        vop.set(newRefreshToken, authentication.getName(), Duration.ofSeconds(newRefreshTokenExpires));
-//        // 기존 refershToken은 3초 후 만료
-//        vop.set(refreshToken, "", Duration.ofSeconds(3));
-//
-//        // Add Cookie Refersh Token
-//        response.addCookie(CookieUtil.setRefreshTokenCookie((String) newRefreshToken, newRefreshTokenExpires));
+
+        String bearerToken = tokenProvider.resolveToken(request);
+        if (bearerToken == null)
+            throw new NullPointerException("==> [Reissue] Empty Access Token.");
+
+        // 토큰이 유효 하면 재발급하지 않는다.
+        if (tokenProvider.validateToken(bearerToken)) {
+            resultMap.put("accessToken", bearerToken);
+            return resultMap;
+        }
+
+        Users users = tokenProvider.getUserInfo(bearerToken);
+
+        Cookie[] cookies = request.getCookies();
+
+        String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
+
+        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
+        String redisRefreshTokenEmail = (String) vop.get(refreshToken);
+
+        if (!StringUtils.hasText(redisRefreshTokenEmail))
+            throw new RuntimeException("==> [Reissue Expires] logged out user. ");
+
+        if (!redisRefreshTokenEmail.equals(users.getEmail()))
+            throw new RuntimeException("==> [Reissue] The information in the token does not match.");
+
+        HashMap<String, Object> tokenMap = tokenProvider.generateToken(users);
+
+        resultMap.put("accessToken", tokenMap.get("accessToken"));
+        resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
+
+        String newRefreshToken = (String) tokenMap.get("refreshToken");
+        long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
+
+        // Redis Set Key-Value
+        vop.set(newRefreshToken, users.getEmail(), Duration.ofSeconds(newRefreshTokenExpires));
+        // 기존 refreshToken 3초 후 만료
+        vop.set(refreshToken, "", Duration.ofSeconds(3));
+
+        // Add Cookie Refersh Token
+        response.addCookie(CookieUtil.setRefreshTokenCookie((String) newRefreshToken, newRefreshTokenExpires));
 
         return resultMap;
+    }
+
+    public Users getUserInfo(HttpServletRequest request) {
+        String bearerToken = tokenProvider.resolveToken(request);
+        if (bearerToken == null)
+            throw new NullPointerException("==> [Reissue] Empty Access Token.");
+        return tokenProvider.getUserInfo(bearerToken);
     }
 }

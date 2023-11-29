@@ -3,10 +3,8 @@ server:
 spring:
   application:
     name: issueMoaUsers
-  profiles:
-    active: local
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:host.docker.internal:8888
 management:
   endpoints:
     web:
@@ -15,7 +13,7 @@ management:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: host.docker.internal:8761/eureka
 
 jwt: # HS512 알고리즘 512bit, 즉 64byte 이상의 secret key를 사용해야 한다.
   secret: ENC(VI4MfgzGP9i+LiWDRY0dYaJ/hXBDocUOR3LpuuFNaGK3BH2/b/tkCswVcRRed2wsj556Y8MAw+13b25s6Xeuvg2XbjOYRImlU30XbUD24MVy6xrSvqMYY+0Q4Uq/2MlT0J42h+G3MK/cYZW3uf73Aw==)

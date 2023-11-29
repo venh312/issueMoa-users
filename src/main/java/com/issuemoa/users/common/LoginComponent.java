@@ -33,7 +33,7 @@ public class LoginComponent {
 
         // Redis Set Data - refreshToken
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        vop.set(refreshToken, users.getEmail(), Duration.ofSeconds(refreshExpires));
+        vop.set(refreshToken, String.valueOf(users.getId()), Duration.ofSeconds(refreshExpires));
 
         response.addCookie(CookieUtil.setRefreshTokenCookie((String) refreshToken, refreshExpires));
 

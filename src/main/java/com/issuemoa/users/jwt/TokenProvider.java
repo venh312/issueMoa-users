@@ -37,6 +37,7 @@ public class TokenProvider {
 
         String accessToken = Jwts.builder()
                 .setSubject(users.getEmail())               // payload "sub": "username"
+                .claim("name", users.getName())           // payload "id": "1"
                 .claim("id", users.getId())           // payload "id": "1"
                 .claim(AUTHORITIES_KEY, "ISSUEMOA_USER")           // payload "auth": "ROLE_VENH"
                 .setExpiration(accessTokenExpires)          // payload "exp": 1516239022
@@ -71,9 +72,11 @@ public class TokenProvider {
             throw new NullPointerException("==> Token is Not authorized.");
 
         log.info("==> getUsers: claims: {}", claims);
+
         int id = (int) claims.get("id");
         return Users.builder()
             .email(claims.getSubject())
+            .name((String) claims.get("name"))
             .id((long) id)
             .build();
     }

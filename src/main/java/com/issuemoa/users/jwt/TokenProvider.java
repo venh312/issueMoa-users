@@ -18,7 +18,7 @@ import java.util.HashMap;
 @Component
 public class TokenProvider {
     private static final String AUTHORITIES_KEY = "auth";
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 5;    // 30분
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;    // 30분
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;  // 7일
     private final Key key;
 
@@ -69,9 +69,7 @@ public class TokenProvider {
         Claims claims = parseClaims(accessToken);
 
         if (claims.get(AUTHORITIES_KEY) == null)
-            throw new NullPointerException("==> Token is Not authorized.");
-
-        log.info("==> getUsers: claims: {}", claims);
+            log.error("==> [NullPointerException] getUserInfo authorized");
 
         int id = (int) claims.get("id");
         return Users.builder()

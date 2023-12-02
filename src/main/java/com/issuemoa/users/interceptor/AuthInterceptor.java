@@ -1,6 +1,7 @@
 package com.issuemoa.users.interceptor;
 
 import com.issuemoa.users.jwt.TokenProvider;
+import com.issuemoa.users.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
-    private final TokenProvider tokenProvider;
+    private final UsersService usersService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

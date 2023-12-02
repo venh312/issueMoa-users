@@ -24,18 +24,19 @@ public class LoginComponent {
 
         usersRepository.updateLastLoginTime(users.getId());
 
-        resultMap.put("msg", "Success");
-        resultMap.put("accessToken", tokenMap.get("accessToken"));
-        resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
-
+        String accessToken = (String) tokenMap.get("accessToken");
         String refreshToken = (String) tokenMap.get("refreshToken");
+        long accessTokenExpires = Long.parseLong((String) tokenMap.get("accessTokenExpires"));
         long refreshExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
 
-        // Redis Set Data - refreshToken
+        resultMap.put("msg", "Success");
+        resultMap.put("accessToken", accessToken);
+        resultMap.put("accessTokenExpires", accessTokenExpires);
+
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
         vop.set(refreshToken, String.valueOf(users.getId()), Duration.ofSeconds(refreshExpires));
 
-        response.addCookie(CookieUtil.setRefreshTokenCookie((String) refreshToken, refreshExpires));
+        response.addCookie(CookieUtil.setCookie("refreshToken", refreshToken, refreshExpires, true));
 
         return resultMap;
     }

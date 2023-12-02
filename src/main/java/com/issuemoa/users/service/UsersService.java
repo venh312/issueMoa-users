@@ -44,38 +44,22 @@ public class UsersService {
     }
 
     /**
-     Redis의 refreshToken 값이 만료전이면
-    해당 인증 정보를 가지고 새로운 토큰을 생성한다. */
-    public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
-        HashMap<String, Object> resultMap = new HashMap<>();
+     refreshToken으로 새로운 토큰을 생성 한다. */
+        public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
 
-        String bearerToken = tokenProvider.resolveToken(request);
-        if (bearerToken == null) {
-            log.info("==> [Reissue] NullPointerException Access Token.");
-            return null;
-        }
-
-        // 토큰이 유효 하면 재발급하지 않는다.
-        if (tokenProvider.validateToken(bearerToken)) {
-            Users tokenUser = tokenProvider.getUserInfo(bearerToken);
-            resultMap.put("email", tokenUser.getEmail());
-            resultMap.put("name", tokenUser.getName());
-            resultMap.put("accessToken", bearerToken);
-            return resultMap;
-        }
-
-        Cookie[] cookies = request.getCookies();
-
-        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        String refreshToken = CookieUtil.getRefreshTokenCookie(cookies);
+        String refreshToken = CookieUtil.getRefreshTokenCookie(request);
+        log.info("==> [reissue] refreshToken: {}", refreshToken);
 
         if (refreshToken.isEmpty()) {
             return null;
         }
 
+        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
         String refreshTokenId = refreshTokenId = (String) vop.get(refreshToken);
 
-        if (refreshTokenId == null) {
+        log.info("==> [reissue] refreshTokenId: {}", refreshTokenId);
+
+        if (refreshTokenId == null && !refreshTokenId.isEmpty()) {
             log.info("==> [Reissue] NullPointerException refreshTokenId.");
             return null;
         }
@@ -83,30 +67,35 @@ public class UsersService {
         // 사용자 정보 조회
         Users user = usersRepository.findById(Long.valueOf(refreshTokenId)).get();
 
-        // 토큰 재발급
+        // 토큰 발급
         HashMap<String, Object> tokenMap = tokenProvider.generateToken(user);
-        resultMap.put("email", user.getEmail());
-        resultMap.put("name", user.getName());
-        resultMap.put("accessToken", tokenMap.get("accessToken"));
-        resultMap.put("accessTokenExpires", tokenMap.get("accessTokenExpires"));
 
+        String accessToken = (String) tokenMap.get("accessToken");
         String newRefreshToken = (String) tokenMap.get("refreshToken");
+        long accessTokenExpires = Long.parseLong((String) tokenMap.get("accessTokenExpires"));
         long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
 
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("email", user.getEmail());
+        resultMap.put("name", user.getName());
+        resultMap.put("accessToken", accessToken);
+        resultMap.put("accessTokenExpires", accessTokenExpires);
+
+        // refreshToken 갱신
+        vop.set(newRefreshToken, String.valueOf(user.getId()), Duration.ofSeconds(newRefreshTokenExpires));
         // 기존 refreshToken 3초 후 만료
         vop.set(refreshToken, "", Duration.ofSeconds(3));
-        vop.set(newRefreshToken, String.valueOf(user.getId()), Duration.ofSeconds(newRefreshTokenExpires));
 
         // RefreshToken 쿠키 설정
-        response.addCookie(CookieUtil.setRefreshTokenCookie(newRefreshToken, newRefreshTokenExpires));
+        response.addCookie(CookieUtil.setCookie("refreshToken", newRefreshToken, newRefreshTokenExpires, true));
 
         return resultMap;
     }
 
     public Users getUserInfo(HttpServletRequest request) {
         String bearerToken = tokenProvider.resolveToken(request);
-        if (bearerToken == null)
-            throw new NullPointerException("==> [Reissue] Empty Access Token.");
-        return tokenProvider.getUserInfo(bearerToken);
+        if (tokenProvider.validateToken(bearerToken))
+            return tokenProvider.getUserInfo(bearerToken);
+        return null;
     }
 }

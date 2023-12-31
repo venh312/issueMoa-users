@@ -4,6 +4,9 @@ import com.issuemoa.users.common.LoginComponent;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.message.RestMessage;
 import com.issuemoa.users.service.UsersService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 
+@Tag(name = "Users", description = "Users API")
 @RequiredArgsConstructor
 @Controller
 public class UsersController {
@@ -27,6 +31,7 @@ public class UsersController {
     @Value("${api.secret.recaptcha}")
     private String secretRecaptcha;
 
+    @Operation(summary = "Users SignIn", description = "사용자 로그인 / 회원가입")
     @PostMapping("/users/signIn")
     public ResponseEntity<RestMessage> signIn(@RequestBody Users.Request request, HttpServletResponse response) {
         HashMap<String, Object> result = new HashMap<>();
@@ -59,15 +64,19 @@ public class UsersController {
             .body(new RestMessage(HttpStatus.OK, result));
    }
 
+    @Operation(summary = "Users Reissue", description = "리프레시 토큰으로 액세스 토큰을 재발급 한다.")
     @PostMapping("/users/reissue")
-    public ResponseEntity<RestMessage> reissue(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<RestMessage> reissue(
+            @Parameter(description = "HttpHeaders.AUTHORIZATION") HttpServletRequest request, HttpServletResponse response) {
         return ResponseEntity.ok()
             .headers(new HttpHeaders())
             .body(new RestMessage(HttpStatus.OK, usersService.reissue(request, response)));
     }
 
+    @Operation(summary = "Users Info", description = "사용자 정보를 반환한다.")
     @GetMapping("/users/info")
-    public ResponseEntity<RestMessage> getUsersId(HttpServletRequest request) {
+    public ResponseEntity<RestMessage> getUsersId(
+            @Parameter(description = "HttpHeaders.AUTHORIZATION") HttpServletRequest request) {
         return ResponseEntity.ok()
             .headers(new HttpHeaders())
             .body(new RestMessage(HttpStatus.OK, usersService.getUserInfo(request)));

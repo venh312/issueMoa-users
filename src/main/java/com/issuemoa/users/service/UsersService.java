@@ -43,14 +43,14 @@ public class UsersService {
         return user.orElse(null);
     }
 
-    /**
-     refreshToken으로 새로운 토큰을 생성 한다. */
-        public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
+    // 리프레시 토큰으로 새로운 토큰을 생성 한다.
+    public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = CookieUtil.getRefreshTokenCookie(request);
         log.info("==> [reissue] refreshToken: {}", refreshToken);
 
-        if (refreshToken.isEmpty()) {
+        if (!StringUtils.hasText(refreshToken)) {
+            log.info("==> [Reissue] NullPointerException refreshToken.");
             return null;
         }
 
@@ -59,7 +59,7 @@ public class UsersService {
 
         log.info("==> [reissue] refreshTokenId: {}", refreshTokenId);
 
-        if (refreshTokenId == null && !refreshTokenId.isEmpty()) {
+        if (!StringUtils.hasText(refreshTokenId)) {
             log.info("==> [Reissue] NullPointerException refreshTokenId.");
             return null;
         }
@@ -72,6 +72,7 @@ public class UsersService {
 
         String accessToken = (String) tokenMap.get("accessToken");
         String newRefreshToken = (String) tokenMap.get("refreshToken");
+
         long accessTokenExpires = Long.parseLong((String) tokenMap.get("accessTokenExpires"));
         long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
 

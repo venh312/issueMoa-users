@@ -12,7 +12,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
@@ -98,5 +97,21 @@ public class UsersService {
         if (tokenProvider.validateToken(bearerToken))
             return tokenProvider.getUserInfo(bearerToken);
         return null;
+    }
+
+    public boolean signOut(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = CookieUtil.getRefreshTokenCookie(request);
+
+        if (StringUtils.hasText(refreshToken)) {
+            // 쿠키 삭제
+            CookieUtil.deleteCookie(request, response, "accessToken");
+            CookieUtil.deleteCookie(request, response, "refreshToken");
+
+            // Redis Token 삭제
+            ValueOperations<String, Object> vop = redisTemplate.opsForValue();
+            vop.set(refreshToken, "", Duration.ofSeconds(3));
+        }
+
+        return true;
     }
 }

@@ -81,4 +81,11 @@ public class UsersController {
             .body(new RestMessage(HttpStatus.OK, usersService.getUserInfo(request)));
     }
 
+    @Operation(summary = "signOut", description = "로그아웃 처리를 한다.")
+    @GetMapping("/users/signOut")
+    public ResponseEntity<RestMessage> signOut(HttpServletRequest request, HttpServletResponse response) {
+        return ResponseEntity.ok()
+            .headers(new HttpHeaders())
+            .body(new RestMessage(HttpStatus.OK, usersService.signOut(request, response)));
+    }
 }

@@ -64,7 +64,7 @@ public class UsersController {
             .body(new RestMessage(HttpStatus.OK, result));
    }
 
-    @Operation(summary = "Users Reissue", description = "리프레시 토큰으로 액세스 토큰을 재발급 한다.")
+    @Operation(summary = "Users Reissue", description = "refreshToken 쿠키 값을 검증하여 재발급한다.")
     @PostMapping("/users/reissue")
     public ResponseEntity<RestMessage> reissue(
             @Parameter(description = "HttpHeaders.AUTHORIZATION") HttpServletRequest request, HttpServletResponse response) {
@@ -73,10 +73,9 @@ public class UsersController {
             .body(new RestMessage(HttpStatus.OK, usersService.reissue(request, response)));
     }
 
-    @Operation(summary = "Users Info", description = "사용자 정보를 반환한다.")
+    @Operation(summary = "Users Info", description = "사용자 정보를 반환한다. <br>Headers Authorization에 [Bearer 토큰] 형식으로 전달한다.")
     @GetMapping("/users/info")
-    public ResponseEntity<RestMessage> getUsersId(
-            @Parameter(description = "HttpHeaders.AUTHORIZATION") HttpServletRequest request) {
+    public ResponseEntity<RestMessage> getUserInfo(HttpServletRequest request) {
         return ResponseEntity.ok()
             .headers(new HttpHeaders())
             .body(new RestMessage(HttpStatus.OK, usersService.getUserInfo(request)));

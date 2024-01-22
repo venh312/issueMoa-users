@@ -3,6 +3,7 @@ package com.issuemoa.users.web;
 import com.issuemoa.users.common.LoginComponent;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.message.RestMessage;
+import com.issuemoa.users.service.UsersRequest;
 import com.issuemoa.users.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,7 +34,7 @@ public class UsersController {
 
     @Operation(summary = "Users SignIn", description = "사용자 로그인 / 회원가입")
     @PostMapping("/users/signIn")
-    public ResponseEntity<RestMessage> signIn(@RequestBody Users.Request request, HttpServletResponse response) {
+    public ResponseEntity<RestMessage> signIn(@RequestBody UsersRequest request, HttpServletResponse response) {
         HashMap<String, Object> result = new HashMap<>();
         boolean isExists = true;
 

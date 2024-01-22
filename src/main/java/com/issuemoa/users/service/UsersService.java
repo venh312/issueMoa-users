@@ -24,11 +24,11 @@ import java.util.Optional;
 public class UsersService {
     private final UsersRepository usersRepository;
     private final JPAQueryFactory jpaQueryFactory;
-    private QUsers users = QUsers.users;
     private final RedisTemplate<String, Object> redisTemplate;
     private final TokenProvider tokenProvider;
+    private final QUsers users = QUsers.users;
 
-    public Long save(Users.Request request) {
+    public Long save(UsersRequest request) {
         return usersRepository.save(request.toEntity()).getId();
     }
 
@@ -37,8 +37,8 @@ public class UsersService {
         return user.orElse(null);
     }
 
-    public Users findByUid(Users.Request request) {
-        Optional<Users> user = usersRepository.findByUid(request.getUid());
+    public Users findByUid(UsersRequest request) {
+        Optional<Users> user = usersRepository.findByUid(request.uid());
         return user.orElse(null);
     }
 

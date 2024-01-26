@@ -16,4 +16,8 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
     @Modifying
     @Query(value = "update users set last_login_time = now() where id = :id", nativeQuery = true)
     public int updateLastLoginTime(@Param("id") Long id);
+
+//    @Query(value = "select id,uid,name,email,grade_code,sns_type,register_time,modify_time,last_login_time from users parent LEFT JOIN FETCH parent.childEntities child where uid = :uid", nativeQuery = true)
+    @Query(value = "select parent from users parent left join fetch parent.gradeList where parent.uid = :uid")
+    public Users selectUserInfo(@Param("uid") String uid);
 }

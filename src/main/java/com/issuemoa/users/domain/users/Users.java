@@ -1,14 +1,16 @@
 package com.issuemoa.users.domain.users;
 
 import com.issuemoa.users.domain.BaseTime;
+import com.issuemoa.users.domain.grade.Grade;
 import lombok.*;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Getter
 @Entity(name = "users")
 public class Users extends BaseTime {
@@ -18,16 +20,11 @@ public class Users extends BaseTime {
     private String uid;
     private String name;
     private String email;
+    @Column(name = "grade_code")
+    private String gradeCode;
     private String snsType;
     private LocalDateTime lastLoginTime;
 
-    @Builder
-    public Users(Long id, String uid, String name, String email, String snsType, LocalDateTime lastLoginTime) {
-        this.id = id;
-        this.uid = uid;
-        this.name = name;
-        this.email = email;
-        this.snsType = snsType;
-        this.lastLoginTime = lastLoginTime;
-    }
+    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL)
+    private List<Grade> gradeList = new ArrayList<>();
 }

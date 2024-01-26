@@ -1,6 +1,6 @@
 # -Dspring.profiles.active=local
 server:
-  port: 17070
+  port: 37070
 spring:
   application:
     name: issueMoaUsers
@@ -14,7 +14,7 @@ management:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:38761/eureka
 
 api:
   endpoint:

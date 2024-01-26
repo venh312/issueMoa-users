@@ -1,7 +1,6 @@
 package com.issuemoa.users.service;
 
 import com.issuemoa.users.common.CookieUtil;
-import com.issuemoa.users.domain.users.QUsers;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
 import com.issuemoa.users.jwt.TokenProvider;
@@ -16,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,20 +24,23 @@ public class UsersService {
     private final JPAQueryFactory jpaQueryFactory;
     private final RedisTemplate<String, Object> redisTemplate;
     private final TokenProvider tokenProvider;
-    private final QUsers users = QUsers.users;
 
-    public Long save(UsersRequest request) {
+    public Long save(UsersSignInRequest request) {
         return usersRepository.save(request.toEntity()).getId();
     }
 
     public Users findById(Long id) {
-        Optional<Users> user = usersRepository.findById(id);
-        return user.orElse(null);
+        return usersRepository.findById(id).orElse(null);
     }
 
-    public Users findByUid(UsersRequest request) {
-        Optional<Users> user = usersRepository.findByUid(request.uid());
-        return user.orElse(null);
+    public Users findByUid(UsersSignInRequest request) {
+        return usersRepository.findByUid(request.uid()).orElse(null);
+    }
+
+    public Users selectUserInfo(String uid) {
+        Users users = usersRepository.selectUserInfo(uid);
+        log.info("selectUserInfo :: {}", users);
+        return users;
     }
 
     // 리프레시 토큰으로 새로운 토큰을 생성 한다.

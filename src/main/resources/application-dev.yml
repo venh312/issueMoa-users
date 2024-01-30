@@ -1,33 +1,14 @@
-# -Dspring.profiles.active=local
+# -Dspring.profiles.active=dev
 server:
   port: 17070
 spring:
   application:
     name: issueMoaUsers
   config:
-    import: optional:configserver:http://61.102.114.235:8888
-management:
-  endpoints:
-    web:
-      exposure:
-        include: refresh
+    import:
+      - common.yml
+      - optional:configserver:http://192.168.0.31:8888
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://61.102.114.235:8761/eureka
-
-api:
-  endpoint:
-    bookmarkFindByUserId: http://61.102.114.235:17070/support/bookmark/findByUserId
-    recaptchaSiteVerify: https://www.google.com/recaptcha/api/siteverify
-  secret:
-    recaptcha: ENC(ykQJhpH7TtMuT4FeJjK+HlyFdHx/gQTO/tZvL4vLo+SRafL0OR2Dm+LJK0q9A1560qaM+flN2m8=)
-
-jwt: # HS512 알고리즘 512bit, 즉 64byte 이상의 secret key를 사용해야 한다.
-  secret: ENC(VI4MfgzGP9i+LiWDRY0dYaJ/hXBDocUOR3LpuuFNaGK3BH2/b/tkCswVcRRed2wsj556Y8MAw+13b25s6Xeuvg2XbjOYRImlU30XbUD24MVy6xrSvqMYY+0Q4Uq/2MlT0J42h+G3MK/cYZW3uf73Aw==)
-
-springdoc:
-  api-docs:
-    path: /users/v3/api-docs
-  swagger-ui:
-    path: /users/swagger-ui.html
+      defaultZone: http://192.168.0.31:8761/eureka

@@ -25,8 +25,7 @@ import java.util.HashMap;
 public class UsersController {
     private final UsersService usersService;
     private final LoginComponent loginComponent;
-    @Value("${api.endpoint.bookmarkFindByUserId}")
-    private String bookmarkFindByUserIdEndpoint;
+
     @Value("${api.endpoint.recaptchaSiteVerify}")
     private String recaptchaSiteVerifyEndpoint;
     @Value("${api.secret.recaptcha}")

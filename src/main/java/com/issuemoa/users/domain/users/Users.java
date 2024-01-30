@@ -25,6 +25,7 @@ public class Users extends BaseTime {
     private String snsType;
     private LocalDateTime lastLoginTime;
 
-    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL)
-    private List<Grade> gradeList = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "grade_code", referencedColumnName = "code", insertable = false, updatable = false)
+    private Grade grade;
 }

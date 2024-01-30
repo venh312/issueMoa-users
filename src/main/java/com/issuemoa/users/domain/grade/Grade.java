@@ -1,17 +1,16 @@
 package com.issuemoa.users.domain.grade;
 
 import com.issuemoa.users.domain.BaseTime;
-import com.issuemoa.users.domain.users.Users;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity(name = "grade")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Grade extends BaseTime {
+public class Grade extends BaseTime implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,8 +18,4 @@ public class Grade extends BaseTime {
     private String code;
     private Long registerId;
     private Long modifyId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grade_code")
-    private Users users;
 }

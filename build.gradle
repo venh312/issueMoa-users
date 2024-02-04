@@ -24,6 +24,7 @@ ext {
 }
 
 dependencies {
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.6.12'
 	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.4'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'

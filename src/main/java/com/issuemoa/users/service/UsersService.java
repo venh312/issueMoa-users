@@ -67,7 +67,7 @@ public class UsersService {
         // 사용자 정보 조회
         Users user = usersRepository.findById(Long.valueOf(refreshTokenId)).get();
 
-        // 토큰 발급
+        // 신규 토큰 발급
         HashMap<String, Object> tokenMap = tokenProvider.generateToken(user);
 
         String accessToken = (String) tokenMap.get("accessToken");
@@ -82,12 +82,13 @@ public class UsersService {
         resultMap.put("accessToken", accessToken);
         resultMap.put("accessTokenExpires", accessTokenExpires);
 
-        // refreshToken 갱신
-        vop.set(newRefreshToken, String.valueOf(user.getId()), Duration.ofSeconds(newRefreshTokenExpires));
-        // 기존 refreshToken 3초 후 만료
-        vop.set(refreshToken, "", Duration.ofSeconds(3));
+        // 기존 refreshToken 삭제
+        redisTemplate.delete(refreshToken);
 
-        // RefreshToken 쿠키 설정
+        // 신규 refreshToken 설정
+        vop.set(newRefreshToken, String.valueOf(user.getId()), Duration.ofSeconds(newRefreshTokenExpires));
+
+        // 신규 refreshToken 쿠키 설정
         response.addCookie(CookieUtil.setCookie("refreshToken", newRefreshToken, newRefreshTokenExpires, true));
 
         return resultMap;

@@ -3,8 +3,8 @@ package com.issuemoa.users.service;
 import com.issuemoa.users.common.CookieUtil;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
+import com.issuemoa.users.exception.NotFoundUsersException;
 import com.issuemoa.users.jwt.TokenProvider;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,7 +21,6 @@ import java.util.HashMap;
 @Service
 public class UsersService {
     private final UsersRepository usersRepository;
-    private final JPAQueryFactory jpaQueryFactory;
     private final RedisTemplate<String, Object> redisTemplate;
     private final TokenProvider tokenProvider;
 
@@ -30,42 +29,32 @@ public class UsersService {
     }
 
     public Users findById(Long id) {
-        return usersRepository.findById(id).orElse(null);
+        return usersRepository.findById(id).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
     }
 
     public Users findByUid(UsersSignInRequest request) {
-        return usersRepository.findByUid(request.uid()).orElse(null);
+        return usersRepository.findByUid(request.uid()).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
     }
 
     public Users selectUserInfo(String uid) {
-        Users users = usersRepository.selectUserInfo(uid);
-        log.info("selectUserInfo :: {}", users);
-        return users;
+        return usersRepository.selectUserInfo(uid);
     }
 
     // 리프레시 토큰으로 새로운 토큰을 생성 한다.
     public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
-
         String refreshToken = CookieUtil.getRefreshTokenCookie(request);
-        log.info("==> [reissue] refreshToken: {}", refreshToken);
 
-        if (!StringUtils.hasText(refreshToken)) {
-            log.info("==> [Reissue] NullPointerException refreshToken.");
-            return null;
-        }
+        if (!StringUtils.hasText(refreshToken))
+            throw new NullPointerException("[Reissue] refreshToken");
 
         ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        String refreshTokenId = refreshTokenId = (String) vop.get(refreshToken);
+        String refreshTokenId = (String) vop.get(refreshToken);
 
-        log.info("==> [reissue] refreshTokenId: {}", refreshTokenId);
-
-        if (!StringUtils.hasText(refreshTokenId)) {
-            log.info("==> [Reissue] NullPointerException refreshTokenId.");
-            return null;
-        }
+        if (!StringUtils.hasText(refreshTokenId))
+            throw new NullPointerException("[Reissue] refreshTokenId");
 
         // 사용자 정보 조회
-        Users user = usersRepository.findById(Long.valueOf(refreshTokenId)).get();
+        Users user = usersRepository.findById(Long.valueOf(refreshTokenId)).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
 
         // 신규 토큰 발급
         HashMap<String, Object> tokenMap = tokenProvider.generateToken(user);
@@ -96,9 +85,9 @@ public class UsersService {
 
     public Users getUserInfo(HttpServletRequest request) {
         String bearerToken = tokenProvider.resolveToken(request);
-        if (tokenProvider.validateToken(bearerToken))
-            return tokenProvider.getUserInfo(bearerToken);
-        return null;
+        if (!tokenProvider.validateToken(bearerToken))
+            throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
+        return tokenProvider.getUserInfo(bearerToken);
     }
 
     public boolean signOut(HttpServletRequest request, HttpServletResponse response) {

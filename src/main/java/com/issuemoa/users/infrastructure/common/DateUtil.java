@@ -1,4 +1,4 @@
-package com.issuemoa.users.common;
+package com.issuemoa.users.infrastructure.common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

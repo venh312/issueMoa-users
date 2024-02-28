@@ -1,4 +1,4 @@
-package com.issuemoa.users.config;
+package com.issuemoa.users.infrastructure.config;
 
 import org.jasypt.encryption.StringEncryptor;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;

@@ -1,10 +1,10 @@
-package com.issuemoa.users.web;
+package com.issuemoa.users.presentation.controller;
 
-import com.issuemoa.users.common.LoginComponent;
+import com.issuemoa.users.infrastructure.common.LoginComponent;
 import com.issuemoa.users.domain.users.Users;
-import com.issuemoa.users.message.RestMessage;
-import com.issuemoa.users.service.UsersSignInRequest;
-import com.issuemoa.users.service.UsersService;
+import com.issuemoa.users.presentation.message.RestMessage;
+import com.issuemoa.users.presentation.dto.UsersSignInRequest;
+import com.issuemoa.users.application.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

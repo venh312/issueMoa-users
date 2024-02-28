@@ -1,4 +1,4 @@
-package com.issuemoa.users.config;
+package com.issuemoa.users.infrastructure.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

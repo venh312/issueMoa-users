@@ -1,4 +1,4 @@
-package com.issuemoa.users.jwt;
+package com.issuemoa.users.presentation.jwt;
 
 import com.issuemoa.users.domain.users.Users;
 import io.jsonwebtoken.*;

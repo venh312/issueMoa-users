@@ -1,4 +1,4 @@
-package com.issuemoa.users.service;
+package com.issuemoa.users.presentation.dto;
 
 import com.issuemoa.users.domain.users.Users;
 import io.swagger.v3.oas.annotations.media.Schema;

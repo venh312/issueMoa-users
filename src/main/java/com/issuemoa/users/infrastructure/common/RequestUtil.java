@@ -1,4 +1,4 @@
-package com.issuemoa.users.common;
+package com.issuemoa.users.infrastructure.common;
 
 import io.jsonwebtoken.Claims;
 import org.springframework.web.context.request.RequestAttributes;

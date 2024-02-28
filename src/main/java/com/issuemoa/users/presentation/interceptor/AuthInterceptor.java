@@ -1,20 +1,12 @@
-package com.issuemoa.users.interceptor;
+package com.issuemoa.users.presentation.interceptor;
 
-import com.issuemoa.users.jwt.TokenProvider;
-import com.issuemoa.users.service.UsersService;
+import com.issuemoa.users.application.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
 
 @RequiredArgsConstructor
 @Slf4j

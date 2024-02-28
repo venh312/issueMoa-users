@@ -1,4 +1,4 @@
-package com.issuemoa.users.config;
+package com.issuemoa.users.infrastructure.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.context.annotation.Bean;

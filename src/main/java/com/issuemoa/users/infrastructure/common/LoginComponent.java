@@ -1,8 +1,8 @@
-package com.issuemoa.users.common;
+package com.issuemoa.users.infrastructure.common;
 
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
-import com.issuemoa.users.jwt.TokenProvider;
+import com.issuemoa.users.presentation.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;

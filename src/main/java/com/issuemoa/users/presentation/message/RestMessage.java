@@ -1,4 +1,4 @@
-package com.issuemoa.users.message;
+package com.issuemoa.users.presentation.message;
 
 import lombok.Getter;
 import lombok.Setter;

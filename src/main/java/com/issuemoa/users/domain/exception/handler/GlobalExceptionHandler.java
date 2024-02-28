@@ -1,7 +1,7 @@
-package com.issuemoa.users.exception.handler;
+package com.issuemoa.users.domain.exception.handler;
 
-import com.issuemoa.users.exception.NotFoundUsersException;
-import com.issuemoa.users.message.ErrorMessage;
+import com.issuemoa.users.domain.exception.NotFoundUsersException;
+import com.issuemoa.users.presentation.message.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

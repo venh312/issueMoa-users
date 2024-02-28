@@ -1,10 +1,11 @@
-package com.issuemoa.users.service;
+package com.issuemoa.users.application;
 
-import com.issuemoa.users.common.CookieUtil;
+import com.issuemoa.users.infrastructure.common.CookieUtil;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
-import com.issuemoa.users.exception.NotFoundUsersException;
-import com.issuemoa.users.jwt.TokenProvider;
+import com.issuemoa.users.domain.exception.NotFoundUsersException;
+import com.issuemoa.users.presentation.jwt.TokenProvider;
+import com.issuemoa.users.presentation.dto.UsersSignInRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

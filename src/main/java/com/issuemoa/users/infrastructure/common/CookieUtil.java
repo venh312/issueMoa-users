@@ -1,4 +1,4 @@
-package com.issuemoa.users.common;
+package com.issuemoa.users.infrastructure.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;

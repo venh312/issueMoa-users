@@ -25,8 +25,8 @@ public class UsersService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final TokenProvider tokenProvider;
 
-    public Long save(UsersSignInRequest request) {
-        return usersRepository.save(request.toEntity()).getId();
+    public Users save(UsersSignInRequest request) {
+        return usersRepository.save(request.toEntity());
     }
 
     public Users findById(Long id) {

@@ -31,16 +31,14 @@ public class UsersController {
     @Operation(summary = "Users SignIn", description = "사용자 로그인 / 회원가입")
     @PostMapping("/users/signIn")
     public ResponseEntity<HashMap<String, Object>> signIn(@RequestBody UsersSignInRequest request, HttpServletResponse response) {
-        HashMap<String, Object> result = new HashMap<>();
 
         Users user = usersService.findByUid(request);
 
         // 존재 하지 않는 사용자는 User로 등록 한다.
-        if (user == null) {
-            Users saveUser = usersService.save(request);
-            if (saveUser != null)
-                result = loginComponent.onSuccess(saveUser, response);
-        }
+        if (user == null)
+            user = usersService.save(request);
+
+        return ResponseEntity.ok(loginComponent.onSuccess(user, response));
 
 //        String url = recaptchaSiteVerifyEndpoint + "?secret=" + secretRecaptcha + "&response=" + request.getRecaptchaValue();
 //        HashMap<String, Object> recaptchaMap = new HttpApiUtil().getDataFromJson(
@@ -52,7 +50,6 @@ public class UsersController {
 //            resultSave = usersService.save(request);
 //        }
 //
-        return ResponseEntity.ok(result);
    }
 
     @Operation(summary = "Users Reissue", description = "refreshToken 쿠키 값을 검증하여 재발급한다.")

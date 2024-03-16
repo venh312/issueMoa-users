@@ -51,6 +51,11 @@ public class UsersController {
 //        }
 //
    }
+    @Operation(summary = "Users SignIn Oauth2 Google", description = "구글 사용자 로그인 / 회원가입")
+    @PostMapping("/users/signIn/oauth2/code/google")
+    public ResponseEntity<HashMap<String, Object>> signInOauthCodeGoogle() {
+        return null;
+    }
 
     @Operation(summary = "Users Reissue", description = "refreshToken 쿠키 값을 검증하여 재발급한다.")
     @PostMapping("/users/reissue")

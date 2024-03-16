@@ -2,30 +2,91 @@ package com.issuemoa.users.presentation.jwt;
 
 import com.issuemoa.users.domain.users.Users;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
+import java.time.Duration;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class TokenProvider {
+    private final JwtProperties jwtProperties;
+
+    public String generateToken(Users users, Duration expiredAt) {
+        Date now = new Date();
+        return makeToken(new Date(now.getTime() + expiredAt.toMillis()), users);
+    }
+
+    // JWT 토큰 생성
+    private String makeToken(Date expiry, Users users) {
+        Date now = new Date();
+
+        return Jwts.builder()
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE) // 헤더 typ: JWT
+                .setIssuer(jwtProperties.getIssuer())
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .setSubject(users.getEmail())
+                .claim("id", users.getId())
+                .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey())
+                .compact();
+    }
+
+    // JWT 토큰 유효성 검증
+    public boolean validToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey()).build().parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Authentication getAuthentication(String token) {
+        Claims claims = getClaims(token);
+        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+
+        return new UsernamePasswordAuthenticationToken(
+                new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities)
+                , token, authorities);
+    }
+
+    // 토큰 기반으로 유저 ID 조회
+
+    public Long getUserId(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("id", Long.class);
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     private static final String AUTHORITIES_KEY = "auth";
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;    // 30분
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;  // 7일
     private final Key key;
 
-    public TokenProvider(@Value("${jwt.secret}") String secret) {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-    }
+//    public TokenProvider(@Value("${jwt.secret}") String secret) {
+//        byte[] keyBytes = Decoders.BASE64.decode(secret);
+//        this.key = Keys.hmacShaKeyFor(keyBytes);
+//    }
 
     /**
      유저 정보로 Access Token 과 Refresh Token 을 생성한다.

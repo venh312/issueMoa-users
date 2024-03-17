@@ -55,38 +55,41 @@ public class UsersService {
             throw new NullPointerException("[Reissue] refreshTokenId");
 
         // 사용자 정보 조회
-        Users user = usersRepository.findById(Long.valueOf(refreshTokenId)).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+        Users users = usersRepository.findById(Long.valueOf(refreshTokenId)).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
 
-        // 신규 토큰 발급
-        HashMap<String, Object> tokenMap = tokenProvider.generateToken(user);
+        Duration accessTokenDuration = Duration.ofMinutes(30);
+        long accessTokenExpires = accessTokenDuration.toSeconds();
 
-        String accessToken = (String) tokenMap.get("accessToken");
-        String newRefreshToken = (String) tokenMap.get("refreshToken");
-
-        long accessTokenExpires = Long.parseLong((String) tokenMap.get("accessTokenExpires"));
-        long newRefreshTokenExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
+        // accessToken 발급
+        String accessToken =  tokenProvider.generateToken(users, accessTokenDuration);
 
         HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("email", user.getEmail());
-        resultMap.put("name", user.getName());
+        resultMap.put("email", users.getEmail());
+        resultMap.put("name", users.getName());
         resultMap.put("accessToken", accessToken);
         resultMap.put("accessTokenExpires", accessTokenExpires);
+
+        Duration refreshTokenTokenDuration = Duration.ofDays(14);
+        long newRefreshTokenExpires = refreshTokenTokenDuration.toSeconds();
+
+        // refreshToken 토큰 발급
+        String newRefreshToken =  tokenProvider.generateToken(users, refreshTokenTokenDuration);
 
         // 기존 refreshToken 삭제
         redisTemplate.delete(refreshToken);
 
         // 신규 refreshToken 설정
-        vop.set(newRefreshToken, String.valueOf(user.getId()), Duration.ofSeconds(newRefreshTokenExpires));
+        vop.set(newRefreshToken, String.valueOf(users.getId()), newRefreshTokenExpires);
 
         // 신규 refreshToken 쿠키 설정
-        response.addCookie(CookieUtil.setCookie("refreshToken", newRefreshToken, newRefreshTokenExpires, true));
+        CookieUtil.addCookie(response, "refreshToken", newRefreshToken, (int) newRefreshTokenExpires, true);
 
         return resultMap;
     }
 
     public Users getUserInfo(HttpServletRequest request) {
         String bearerToken = tokenProvider.resolveToken(request);
-        if (!tokenProvider.validateToken(bearerToken))
+        if (!tokenProvider.validToken(bearerToken))
             throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
         return tokenProvider.getUserInfo(bearerToken);
     }

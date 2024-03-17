@@ -1,5 +1,6 @@
 package com.issuemoa.users.application;
 
+import com.issuemoa.users.domain.redis.RedisRepository;
 import com.issuemoa.users.infrastructure.common.CookieUtil;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
@@ -8,8 +9,6 @@ import com.issuemoa.users.presentation.jwt.TokenProvider;
 import com.issuemoa.users.presentation.dto.UsersSignInRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +21,7 @@ import java.util.HashMap;
 @Service
 public class UsersService {
     private final UsersRepository usersRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisRepository redisRepository;
     private final TokenProvider tokenProvider;
 
     public Users save(UsersSignInRequest request) {
@@ -48,8 +47,7 @@ public class UsersService {
         if (!StringUtils.hasText(refreshToken))
             throw new NullPointerException("[Reissue] refreshToken");
 
-        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        String refreshTokenId = (String) vop.get(refreshToken);
+        String refreshTokenId = redisRepository.findByKey(refreshToken);
 
         if (!StringUtils.hasText(refreshTokenId))
             throw new NullPointerException("[Reissue] refreshTokenId");
@@ -69,20 +67,18 @@ public class UsersService {
         resultMap.put("accessToken", accessToken);
         resultMap.put("accessTokenExpires", accessTokenExpires);
 
-        Duration refreshTokenTokenDuration = Duration.ofDays(14);
-        long newRefreshTokenExpires = refreshTokenTokenDuration.toSeconds();
-
         // refreshToken 토큰 발급
+        Duration refreshTokenTokenDuration = Duration.ofDays(14);
         String newRefreshToken =  tokenProvider.generateToken(users, refreshTokenTokenDuration);
 
         // 기존 refreshToken 삭제
-        redisTemplate.delete(refreshToken);
+        redisRepository.deleteByKey(refreshToken);
 
         // 신규 refreshToken 설정
-        vop.set(newRefreshToken, String.valueOf(users.getId()), newRefreshTokenExpires);
+        redisRepository.set(newRefreshToken, String.valueOf(users.getId()), refreshTokenTokenDuration);
 
         // 신규 refreshToken 쿠키 설정
-        CookieUtil.addCookie(response, "refreshToken", newRefreshToken, (int) newRefreshTokenExpires, true);
+        CookieUtil.addCookie(response, "refreshToken", newRefreshToken, (int) refreshTokenTokenDuration.toSeconds(), true);
 
         return resultMap;
     }
@@ -103,8 +99,7 @@ public class UsersService {
             CookieUtil.deleteCookie(request, response, "refreshToken");
 
             // Redis Token 삭제
-            ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-            vop.set(refreshToken, "", Duration.ofSeconds(3));
+            redisRepository.deleteByKey(refreshToken);
         }
 
         return true;

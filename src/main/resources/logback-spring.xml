@@ -27,6 +27,13 @@
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
 
     <!-- 프로파일 개발 환경 -->
+    <springProfile name="local">
+        <root level="${LOG_LEVEL}">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- 프로파일 개발 환경 -->
     <springProfile name="dev">
         <root level="${LOG_LEVEL}">
             <appender-ref ref="CONSOLE"/>

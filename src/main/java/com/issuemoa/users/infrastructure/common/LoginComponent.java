@@ -19,26 +19,32 @@ public class LoginComponent {
     private final TokenProvider tokenProvider;
 
     public HashMap<String, Object> onSuccess(Users users, HttpServletResponse response) {
-        HashMap<String, Object> tokenMap =  tokenProvider.generateToken(users);
-        HashMap<String, Object> resultMap = new HashMap<>();
+        Duration accessTokenDuration = Duration.ofMinutes(30);
+        long accessTokenExpires = accessTokenDuration.toSeconds();
 
+        // accessToken 발급
+        String accessToken =  tokenProvider.generateToken(users, accessTokenDuration);
+
+        // 로그인 시간 갱신
         usersRepository.updateLastLoginTime(users.getId());
 
-        String accessToken = (String) tokenMap.get("accessToken");
-        String refreshToken = (String) tokenMap.get("refreshToken");
-        long accessTokenExpires = Long.parseLong((String) tokenMap.get("accessTokenExpires"));
-        long refreshExpires = Long.parseLong((String) tokenMap.get("refreshTokenExpires"));
-
+        HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("msg", "Success");
         resultMap.put("accessToken", accessToken);
         resultMap.put("accessTokenExpires", accessTokenExpires);
 
-        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
-        vop.set(refreshToken, String.valueOf(users.getId()), Duration.ofSeconds(refreshExpires));
+        Duration refreshTokenTokenDuration = Duration.ofDays(14);
+        long refreshTokenExpires = refreshTokenTokenDuration.toSeconds();
 
-        response.addCookie(CookieUtil.setCookie("refreshToken", refreshToken, refreshExpires, true));
+        // refreshToken 토큰 발급
+        String refreshToken =  tokenProvider.generateToken(users, refreshTokenTokenDuration);
+
+        // Redis - refreshToken 토큰 저장
+        ValueOperations<String, Object> vop = redisTemplate.opsForValue();
+        vop.set(refreshToken, String.valueOf(users.getId()), refreshTokenExpires);
+
+        CookieUtil.addCookie(response, "refreshToken", refreshToken, (int) refreshTokenExpires,true);
 
         return resultMap;
     }
-
 }

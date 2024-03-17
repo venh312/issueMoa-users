@@ -23,22 +23,21 @@ public class UsersController {
     private final UsersService usersService;
     private final LoginComponent loginComponent;
 
-    @Value("${api.endpoint.recaptchaSiteVerify}")
-    private String recaptchaSiteVerifyEndpoint;
-    @Value("${api.secret.recaptcha}")
-    private String secretRecaptcha;
+//    @Value("${api.endpoint.recaptchaSiteVerify}")
+//    private String recaptchaSiteVerifyEndpoint;
+//
+//    @Value("${api.secret.recaptcha}")
+//    private String secretRecaptcha;
 
     @Operation(summary = "Users SignIn", description = "사용자 로그인 / 회원가입")
     @PostMapping("/users/signIn")
     public ResponseEntity<HashMap<String, Object>> signIn(@RequestBody UsersSignInRequest request, HttpServletResponse response) {
+        Users users = usersService.findByUid(request);
 
-        Users user = usersService.findByUid(request);
+        // 존재 하지 않는 사용자는 등록 한다.
+        if (users == null) users = usersService.save(request);
 
-        // 존재 하지 않는 사용자는 User로 등록 한다.
-        if (user == null)
-            user = usersService.save(request);
-
-        return ResponseEntity.ok(loginComponent.onSuccess(user, response));
+        return ResponseEntity.ok(loginComponent.onSuccess(users, response));
 
 //        String url = recaptchaSiteVerifyEndpoint + "?secret=" + secretRecaptcha + "&response=" + request.getRecaptchaValue();
 //        HashMap<String, Object> recaptchaMap = new HttpApiUtil().getDataFromJson(
@@ -49,7 +48,6 @@ public class UsersController {
 //        if (recaptchaResult) {
 //            resultSave = usersService.save(request);
 //        }
-//
    }
     @Operation(summary = "Users SignIn Oauth2 Google", description = "구글 사용자 로그인 / 회원가입")
     @PostMapping("/users/signIn/oauth2/code/google")

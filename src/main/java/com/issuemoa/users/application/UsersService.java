@@ -5,6 +5,7 @@ import com.issuemoa.users.infrastructure.common.CookieUtil;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
 import com.issuemoa.users.domain.exception.NotFoundUsersException;
+import com.issuemoa.users.presentation.jwt.Token;
 import com.issuemoa.users.presentation.jwt.TokenProvider;
 import com.issuemoa.users.presentation.dto.UsersSignInRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,12 @@ public class UsersService {
         return usersRepository.findById(id).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
     }
 
-    public Users findByUid(UsersSignInRequest request) {
-        return usersRepository.findByUid(request.uid()).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+    public Users findByUid(String uid) {
+        return usersRepository.findByUid(uid).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+    }
+
+    public Users findByEmail(String email) {
+        return usersRepository.findByEmail(email).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
     }
 
     public Users selectUserInfo(String uid) {
@@ -42,43 +47,40 @@ public class UsersService {
 
     // 리프레시 토큰으로 새로운 토큰을 생성 한다.
     public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
+        log.info("==> [UsersService] reissue");
         String refreshToken = CookieUtil.getRefreshTokenCookie(request);
 
-        if (!StringUtils.hasText(refreshToken))
-            throw new NullPointerException("[Reissue] refreshToken");
+        if (!tokenProvider.validToken(refreshToken))
+            throw new IllegalArgumentException("==> [Reissue] refreshToken");
 
-        String refreshTokenId = redisRepository.findByKey(refreshToken);
+        // 사용자 ID 조회
+        String userId = redisRepository.findByKey(refreshToken);
 
-        if (!StringUtils.hasText(refreshTokenId))
-            throw new NullPointerException("[Reissue] refreshTokenId");
+        if (!StringUtils.hasText(userId))
+            throw new NotFoundUsersException("존재하지 않는 사용자입니다.");
 
         // 사용자 정보 조회
-        Users users = usersRepository.findById(Long.valueOf(refreshTokenId)).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
-
-        Duration accessTokenDuration = Duration.ofMinutes(30);
-        long accessTokenExpires = accessTokenDuration.toSeconds();
+        Users users = usersRepository.findById(Long.valueOf(userId)).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
 
         // accessToken 발급
-        String accessToken =  tokenProvider.generateToken(users, accessTokenDuration);
-
-        HashMap<String, Object> resultMap = new HashMap<>();
-        resultMap.put("email", users.getEmail());
-        resultMap.put("name", users.getName());
-        resultMap.put("accessToken", accessToken);
-        resultMap.put("accessTokenExpires", accessTokenExpires);
+        String accessToken =  tokenProvider.generateToken(users, Duration.ofMinutes(60));
 
         // refreshToken 토큰 발급
         Duration refreshTokenTokenDuration = Duration.ofDays(14);
         String newRefreshToken =  tokenProvider.generateToken(users, refreshTokenTokenDuration);
-
+        
         // 기존 refreshToken 삭제
         redisRepository.deleteByKey(refreshToken);
-
-        // 신규 refreshToken 설정
+        
+        // 신규 refreshToken 설정 
         redisRepository.set(newRefreshToken, String.valueOf(users.getId()), refreshTokenTokenDuration);
+        
+        // refreshToken 쿠키 설정
+        CookieUtil.deleteCookie(request, response, Token.REFRESH_COOKIE_NAME.getValue());
+        CookieUtil.addCookie(response, Token.REFRESH_COOKIE_NAME.getValue(), newRefreshToken, (int) refreshTokenTokenDuration.toSeconds(), true);
 
-        // 신규 refreshToken 쿠키 설정
-        CookieUtil.addCookie(response, "refreshToken", newRefreshToken, (int) refreshTokenTokenDuration.toSeconds(), true);
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("accessToken", accessToken);
 
         return resultMap;
     }
@@ -95,8 +97,8 @@ public class UsersService {
 
         if (StringUtils.hasText(refreshToken)) {
             // 쿠키 삭제
-            CookieUtil.deleteCookie(request, response, "accessToken");
-            CookieUtil.deleteCookie(request, response, "refreshToken");
+            CookieUtil.deleteCookie(request, response, Token.ACCESS_COOKIE_NAME.getValue());
+            CookieUtil.deleteCookie(request, response, Token.REFRESH_COOKIE_NAME.getValue());
 
             // Redis Token 삭제
             redisRepository.deleteByKey(refreshToken);

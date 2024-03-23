@@ -15,6 +15,15 @@ import java.util.Set;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorMessage> handleIllegalArgumentException(IllegalArgumentException ex) {
+        List<String> errors = new ArrayList<>();
+        errors.add(ex.getMessage());
+
+        ErrorMessage errorMessage = new ErrorMessage(errors);
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(NotFoundUsersException.class)
     public ResponseEntity<ErrorMessage> handleUsersNotFoundException(NotFoundUsersException ex) {
         List<String> errors = new ArrayList<>();
@@ -29,8 +38,8 @@ public class GlobalExceptionHandler {
         Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
         List<String> errors = constraintViolations.stream()
                 .map(
-                        constraintViolation ->
-                                extractField(constraintViolation.getPropertyPath()) + ", " + constraintViolation.getMessage()
+                    constraintViolation ->
+                        extractField(constraintViolation.getPropertyPath()) + ", " + constraintViolation.getMessage()
                 )
                 .toList();
 

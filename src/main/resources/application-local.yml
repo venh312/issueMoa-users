@@ -1,4 +1,3 @@
-# -Dspring.profiles.active=local
 server:
   port: 37070
 spring:

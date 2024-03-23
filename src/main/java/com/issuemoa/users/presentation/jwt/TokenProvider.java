@@ -41,12 +41,14 @@ public class TokenProvider {
                     .setExpiration(expiry)
                     .setSubject(users.getEmail())
                     .claim("id", users.getId())
+                    .claim("name", users.getName())
                     .signWith(key, SignatureAlgorithm.HS512)
                     .compact();
     }
 
     // JWT 토큰 유효성 검증
     public boolean validToken(String token) {
+        log.info("==> [TokenProvider] validToken");
         try {
             Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey()).build().parseClaimsJws(token);
             return true;
@@ -71,9 +73,9 @@ public class TokenProvider {
 
     public Claims getClaims(String token) {
         return Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
     }
 
     /**

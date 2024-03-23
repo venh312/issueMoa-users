@@ -31,14 +31,14 @@ public class JwtFactory {
 
     public String createToken(JwtProperties jwtProperties) {
         return Jwts.builder()
-                .setSubject(subject)
-                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                .setIssuer(jwtProperties.getIssuer())
-                .setIssuedAt(issueAt)
-                .setExpiration(expiration)
-                .addClaims(claims)
-                .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey())
-                .compact();
+                    .setSubject(subject)
+                    .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                    .setIssuer(jwtProperties.getIssuer())
+                    .setIssuedAt(issueAt)
+                    .setExpiration(expiration)
+                    .addClaims(claims)
+                    .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey())
+                    .compact();
     }
 
 

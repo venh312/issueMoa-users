@@ -81,6 +81,7 @@ public class UsersService {
 
         HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("accessToken", accessToken);
+        resultMap.put("refreshToken", newRefreshToken);
 
         return resultMap;
     }

@@ -76,12 +76,11 @@ public class UsersService {
         redisRepository.set(newRefreshToken, String.valueOf(users.getId()), refreshTokenTokenDuration);
         
         // refreshToken 쿠키 설정
-        //CookieUtil.deleteCookie(request, response, Token.REFRESH_COOKIE_NAME.getValue());
-        //CookieUtil.addCookie(response, Token.REFRESH_COOKIE_NAME.getValue(), newRefreshToken, (int) refreshTokenTokenDuration.toSeconds(), true);
+        CookieUtil.deleteCookie(request, response, Token.REFRESH_COOKIE_NAME.getValue());
+        CookieUtil.addCookie(response, Token.REFRESH_COOKIE_NAME.getValue(), newRefreshToken, (int) refreshTokenTokenDuration.toSeconds(), true);
 
         HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("accessToken", accessToken);
-        resultMap.put("refreshToken", newRefreshToken);
 
         return resultMap;
     }

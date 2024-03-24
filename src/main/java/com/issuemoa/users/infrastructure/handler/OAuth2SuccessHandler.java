@@ -53,11 +53,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String newRefreshToken = tokenProvider.generateToken(users, REFRESH_TOKEN_DURATION);
 
         saveRefreshToken(refreshToken, newRefreshToken, users.getId());
-        //addRefreshTokenToCookie(request, response, newRefreshToken);
+        addRefreshTokenToCookie(request, response, newRefreshToken);
 
         // AccessToken 생성 -> 패스에 토큰 추가
         String accessToken = tokenProvider.generateToken(users, ACCESS_TOKEN_DURATION);
-        String targetUrl = getTargetUrl(accessToken, newRefreshToken);
+        String targetUrl = getTargetUrl(accessToken);
         
         // 인증 관련 설정 값, 쿠키 제거
         clearAuthenticationAttributes(request, response);
@@ -88,7 +88,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         authorizationRequestRepository.removeAuthorizationRequest(request, response);
     }
 
-    private String getTargetUrl(String token, String refreshToken) {
+    private String getTargetUrl(String token) {
         String redirectPath = "http://127.0.0.1:3000/login";
         String[] profiles = environment.getActiveProfiles();
 
@@ -98,7 +98,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         return UriComponentsBuilder.fromUriString(redirectPath)
                     .queryParam("token", token)
-                    .queryParam("refreshToken", refreshToken)
                     .build()
                     .toUriString();
         }

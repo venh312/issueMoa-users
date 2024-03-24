@@ -53,7 +53,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String newRefreshToken = tokenProvider.generateToken(users, REFRESH_TOKEN_DURATION);
 
         saveRefreshToken(refreshToken, newRefreshToken, users.getId());
-        addRefreshTokenToCookie(request, response, newRefreshToken);
+        //addRefreshTokenToCookie(request, response, newRefreshToken);
 
         // AccessToken 생성 -> 패스에 토큰 추가
         String accessToken = tokenProvider.generateToken(users, ACCESS_TOKEN_DURATION);

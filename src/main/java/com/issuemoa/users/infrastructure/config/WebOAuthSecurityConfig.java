@@ -46,7 +46,7 @@ public class WebOAuthSecurityConfig {
             .formLogin().disable()
             .logout().disable();
 
-        http.cors();
+        http.cors().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         // 헤더를 확인할 필터 추가

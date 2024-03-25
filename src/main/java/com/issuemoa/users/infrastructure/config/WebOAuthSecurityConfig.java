@@ -46,7 +46,7 @@ public class WebOAuthSecurityConfig {
             .formLogin().disable()
             .logout().disable();
 
-        http.cors().disable();
+        http.cors();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         // 헤더를 확인할 필터 추가
@@ -69,7 +69,7 @@ public class WebOAuthSecurityConfig {
         // `/users/**`로 시작하는 url인 경우 인증 실패 시 상태 코드(401)를 반환 하도록 예외 핸들링
         http.exceptionHandling()
                 .defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
-                , new AntPathRequestMatcher("/users/**"));
+                ,new AntPathRequestMatcher("/users/**"));
 
         return http.build();
     }

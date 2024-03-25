@@ -78,7 +78,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         log.info("==> [OAuth2SuccessHandler] addRefreshTokenToCookie");
         int cookieMaxAge = (int) REFRESH_TOKEN_DURATION.toSeconds();
         CookieUtil.deleteCookie(request, response, Token.REFRESH_COOKIE_NAME.getValue());
-        CookieUtil.addCookie(response, Token.REFRESH_COOKIE_NAME.getValue(), refreshToken, cookieMaxAge, true);
+        CookieUtil.addCookie(response, Token.REFRESH_COOKIE_NAME.getValue(), refreshToken, cookieMaxAge, true, true);
     }
 
     // 인증 관련 설정 값, 쿠키 제거

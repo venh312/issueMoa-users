@@ -2,7 +2,7 @@ server:
   servlet:
     session:
       cookie:
-        same-site=lax: lax
+        same-site=lax: none
 management:
   endpoints:
     web:

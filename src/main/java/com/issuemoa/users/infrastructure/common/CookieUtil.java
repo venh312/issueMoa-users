@@ -27,7 +27,6 @@ public class CookieUtil {
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge, boolean httpOnly, boolean secure, String domain) {
         ResponseCookie cookie = null;
         if (!domain.isEmpty()) {
-            log.info("==> [addCookie] Domain :: {}", domain);
             cookie = ResponseCookie.from(name, value)
                     .httpOnly(httpOnly)
                     .secure(secure)

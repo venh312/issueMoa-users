@@ -39,7 +39,6 @@ public class CookieUtil {
             cookie = ResponseCookie.from(name, value)
                     .httpOnly(httpOnly)
                     .secure(secure)
-                    .sameSite("None")
                     .path("/")
                     .maxAge(maxAge)
                     .build();

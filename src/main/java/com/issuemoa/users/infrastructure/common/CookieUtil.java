@@ -30,6 +30,7 @@ public class CookieUtil {
             log.info("==> [addCookie] Domain :: {}", domain);
             cookie = ResponseCookie.from(name, value)
                     .httpOnly(httpOnly)
+                    .domain(domain)
                     .path("/")
                     .maxAge(maxAge)
                     .build();

@@ -1,7 +1,10 @@
 package com.issuemoa.users.presentation.jwt;
 
 import com.issuemoa.users.domain.users.Users;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.time.Duration;
@@ -48,7 +52,7 @@ public class TokenProvider {
 
     // JWT 토큰 유효성 검증
     public boolean validToken(String token) {
-        log.info("==> [TokenProvider] validToken");
+        log.info("==> [TokenProvider] validToken :: {}", token);
         try {
             Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey()).build().parseClaimsJws(token);
             return true;
@@ -94,7 +98,6 @@ public class TokenProvider {
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        log.info("==> BearerToken : {}", bearerToken);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer"))
             return bearerToken.substring(7);
         return null;

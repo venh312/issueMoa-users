@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +30,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         // 토큰 유효 검증 && 인증 정보 설정
         if (tokenProvider.validToken(token)) {
             Authentication authentication = tokenProvider.getAuthentication(token);
-            log.info("==> [TokenAuthenticationFilter] validToken <PASS>");
             log.info("==> [TokenAuthenticationFilter] authentication :: {}", authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

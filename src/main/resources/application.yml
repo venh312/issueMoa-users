@@ -18,3 +18,7 @@ springdoc:
     path: /users/v3/api-docs
   swagger-ui:
     path: /users/swagger-ui.html
+
+test:
+  users:
+    token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjb25mMzEyQGtha2FvLmNvbSIsIm5hbWUiOiLslYzsiJjsl4bsnYwiLCJpZCI6NCwiYXV0aCI6IklTU1VFTU9BX1VTRVIiLCJleHAiOjE3MDQ5NzkzMjl9.gzXnASGdtoiVQgh57cJqnxREkVGZTFvade8ppCb_yTQKfTMNLashMxD5cZ8FvHPMFTNcC0arvXbQ-vqIxViyvQ

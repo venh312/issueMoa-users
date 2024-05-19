@@ -1,17 +1,20 @@
 package com.issuemoa.users.application;
 
+import com.issuemoa.users.domain.exception.NotFoundUsersException;
 import com.issuemoa.users.domain.redis.RedisRepository;
-import com.issuemoa.users.infrastructure.common.CookieUtil;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
-import com.issuemoa.users.domain.exception.NotFoundUsersException;
+import com.issuemoa.users.infrastructure.common.CookieUtil;
+import com.issuemoa.users.infrastructure.common.UsersUtil;
+import com.issuemoa.users.presentation.dto.UsersSignInRequest;
 import com.issuemoa.users.presentation.jwt.Token;
 import com.issuemoa.users.presentation.jwt.TokenProvider;
-import com.issuemoa.users.presentation.dto.UsersSignInRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
@@ -24,6 +27,9 @@ public class UsersService {
     private final UsersRepository usersRepository;
     private final RedisRepository redisRepository;
     private final TokenProvider tokenProvider;
+
+    @Value("${test.users.token}")
+    private String testUsersToken;
 
     public Users save(UsersSignInRequest request) {
         return usersRepository.save(request.toEntity());
@@ -87,7 +93,17 @@ public class UsersService {
 
     public Users getUserInfo(HttpServletRequest request) {
         String bearerToken = tokenProvider.resolveToken(request);
-        if (!tokenProvider.validToken(bearerToken))
+
+        // 테스트 토큰이면 테스트 사용자 정보 반환
+        if (bearerToken.equals(testUsersToken)) {
+            return Users.builder()
+                    .email("dev@issuemoa.kr")
+                    .name("테스터")
+                    .id(7L)
+                    .build();
+        }
+
+        if (!UsersUtil.isLogin())
             throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
         return tokenProvider.getUserInfo(bearerToken);
     }

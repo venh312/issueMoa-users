@@ -25,12 +25,24 @@ public class CookieUtil {
     }
 
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge, boolean httpOnly, boolean secure, String domain) {
-        ResponseCookie cookie = ResponseCookie.from(name, value)
-                .httpOnly(httpOnly)
-                .secure(secure)
-                .path("/")
-                .maxAge(maxAge)
-                .build();
+        ResponseCookie cookie = null;
+        if (!domain.isEmpty()) {
+            cookie = ResponseCookie.from(name, value)
+                    .httpOnly(httpOnly)
+                    .secure(secure)
+                    .domain(domain)
+                    .path("/")
+                    .maxAge(maxAge)
+                    .build();
+        } else {
+            cookie = ResponseCookie.from(name, value)
+                    .httpOnly(httpOnly)
+                    .secure(secure)
+                    .path("/")
+                    .maxAge(maxAge)
+                    .build();
+        }
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 

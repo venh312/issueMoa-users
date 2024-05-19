@@ -52,15 +52,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refreshToken = CookieUtil.getRefreshTokenCookie(request);
         String newRefreshToken = tokenProvider.generateToken(users, REFRESH_TOKEN_DURATION);
 
+        // 인증 관련 설정 값, 쿠키 제거
+        clearAuthenticationAttributes(request, response);
+
         saveRefreshToken(refreshToken, newRefreshToken, users.getId());
         addRefreshTokenToCookie(request, response, newRefreshToken);
 
         // AccessToken 생성 -> 패스에 토큰 추가
         String accessToken = tokenProvider.generateToken(users, ACCESS_TOKEN_DURATION);
         String targetUrl = getTargetUrl(accessToken);
-        
-        // 인증 관련 설정 값, 쿠키 제거
-        clearAuthenticationAttributes(request, response);
 
         // 리다이렉트
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

@@ -49,11 +49,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         Users users = usersService.findByUid(uid);
 
-        String refreshToken = CookieUtil.getRefreshTokenCookie(request);
-        String newRefreshToken = tokenProvider.generateToken(users, REFRESH_TOKEN_DURATION);
-
         // 인증 관련 설정 값, 쿠키 제거
         clearAuthenticationAttributes(request, response);
+
+        String refreshToken = CookieUtil.getRefreshTokenCookie(request);
+        String newRefreshToken = tokenProvider.generateToken(users, REFRESH_TOKEN_DURATION);
 
         saveRefreshToken(refreshToken, newRefreshToken, users.getId());
         addRefreshTokenToCookie(request, response, newRefreshToken);

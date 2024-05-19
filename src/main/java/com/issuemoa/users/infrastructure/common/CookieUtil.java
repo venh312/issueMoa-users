@@ -22,12 +22,14 @@ public class CookieUtil {
         return Optional.empty();
     }
 
-    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge, boolean httpOnly, boolean secure) {
+    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge, boolean httpOnly, boolean secure, String domain) {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         cookie.setHttpOnly(httpOnly);
         cookie.setSecure(secure);
+        if (!domain.isEmpty())
+            cookie.setDomain(domain);
         response.addCookie(cookie);
     }
 

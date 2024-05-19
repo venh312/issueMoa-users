@@ -2,6 +2,8 @@ package com.issuemoa.users.infrastructure.common;
 
 import com.issuemoa.users.presentation.jwt.Token;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.util.SerializationUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -23,14 +25,14 @@ public class CookieUtil {
     }
 
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge, boolean httpOnly, boolean secure, String domain) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAge);
-        cookie.setHttpOnly(httpOnly);
-        cookie.setSecure(secure);
-        if (!domain.isEmpty())
-            cookie.setDomain(domain);
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .httpOnly(httpOnly)
+                .secure(secure)
+                .domain(domain)
+                .path("/")
+                .maxAge(maxAge)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     public static String getRefreshTokenCookie(HttpServletRequest request) {

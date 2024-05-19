@@ -5,8 +5,8 @@ spring:
     name: issueMoaUsers
   config:
     import:
-      - optional:configserver:http://61.102.114.235:8888
+      - optional:configserver:http://gate.issuemoa.kr:8888
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://61.102.114.235:8761/eureka
+      defaultZone: http://gate.issuemoa.kr:8761/eureka

@@ -27,7 +27,7 @@ public class OAuth2AuthorizationRequestCookieRepository implements Authorization
             removeAuthorizationRequestCookies(request, response);
             return;
         }
-        CookieUtil.addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, CookieUtil.serialize(authorizationRequest), COOKIE_EXPIRE_SECONDS, false, false);
+        CookieUtil.addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, CookieUtil.serialize(authorizationRequest), COOKIE_EXPIRE_SECONDS, false, false, "");
     }
 
     private void removeAuthorizationRequestCookies(HttpServletRequest request, HttpServletResponse response) {

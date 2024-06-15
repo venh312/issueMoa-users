@@ -9,14 +9,11 @@ import java.util.Optional;
 
 public interface UsersRepository extends JpaRepository<Users, Long> {
 
-    public Optional<Users> findByEmail(String email);
-    public Optional<Users> findByUid(String uid);
+    Optional<Users> findByEmail(String email);
+    Optional<Users> findByUid(String uid);
 
     @Transactional
     @Modifying
     @Query(value = "update users set last_login_time = now() where id = :id", nativeQuery = true)
-    public int updateLastLoginTime(@Param("id") Long id);
-
-    @Query(value = "select u from users u left join fetch u.grade where u.uid = :uid")
-    public Users selectUserInfo(@Param("uid") String uid);
+    int updateLastLoginTime(@Param("id") Long id);
 }

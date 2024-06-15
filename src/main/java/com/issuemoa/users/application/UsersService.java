@@ -47,10 +47,6 @@ public class UsersService {
         return usersRepository.findByEmail(email).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
     }
 
-    public Users selectUserInfo(String uid) {
-        return usersRepository.selectUserInfo(uid);
-    }
-
     // 리프레시 토큰으로 새로운 토큰을 생성 한다.
     public HashMap<String, Object> reissue(HttpServletRequest request, HttpServletResponse response) {
         log.info("==> [UsersService] reissue");
@@ -93,16 +89,6 @@ public class UsersService {
 
     public Users getUserInfo(HttpServletRequest request) {
         String bearerToken = tokenProvider.resolveToken(request);
-
-        // 테스트 토큰이면 테스트 사용자 정보 반환
-        if (bearerToken.equals(testUsersToken)) {
-            return Users.builder()
-                    .email("dev@issuemoa.kr")
-                    .name("테스터")
-                    .id(7L)
-                    .build();
-        }
-
         if (!UsersUtil.isLogin())
             throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
         return tokenProvider.getUserInfo(bearerToken);

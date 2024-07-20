@@ -83,6 +83,7 @@ public class UsersService {
     }
 
     public Users getUserInfo(String token) {
+        token = token.substring(7);
         if (tokenProvider.validToken(token))
             throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
         return tokenProvider.getUserInfo(token);

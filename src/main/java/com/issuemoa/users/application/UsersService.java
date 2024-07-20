@@ -82,8 +82,9 @@ public class UsersService {
         return resultMap;
     }
 
-    public Users getUserInfo(String token) {
-        if (tokenProvider.validToken(token))
+    public Users getUserInfo(String bearerToken) {
+        String token = tokenProvider.resolveToken(bearerToken);
+        if (token.isEmpty())
             throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
         return tokenProvider.getUserInfo(token);
     }

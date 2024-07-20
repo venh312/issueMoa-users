@@ -19,8 +19,8 @@ public class UsersController {
 
     @Operation(summary = "Users Info", description = "사용자 정보를 반환한다. <br>Headers Authorization에 [Bearer 토큰 값] 형식으로 전달한다.")
     @GetMapping("/users")
-    public ResponseEntity<Users> getUserInfo(HttpServletRequest request) {
-        return ResponseEntity.ok(usersService.getUserInfo(request));
+    public ResponseEntity<Users> getUserInfo(@RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(usersService.getUserInfo(token));
     }
 
     @Operation(summary = "Users Reissue", description = "refreshToken 으로 액세스 토큰을 재발급한다.")

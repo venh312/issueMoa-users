@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JasyptConfig {
-    // Github - issueMoa-user-config
     @Value("${Jasypt.key}")
     private String key;
     private static final String ALGORITHM = "PBEWithMD5AndDES";

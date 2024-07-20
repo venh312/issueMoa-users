@@ -5,13 +5,11 @@ import com.issuemoa.users.domain.redis.RedisRepository;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
 import com.issuemoa.users.infrastructure.common.CookieUtil;
-import com.issuemoa.users.infrastructure.common.UsersUtil;
 import com.issuemoa.users.presentation.dto.UsersSignInRequest;
 import com.issuemoa.users.presentation.jwt.Token;
 import com.issuemoa.users.presentation.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -27,9 +25,6 @@ public class UsersService {
     private final UsersRepository usersRepository;
     private final RedisRepository redisRepository;
     private final TokenProvider tokenProvider;
-
-    @Value("${test.users.token}")
-    private String testUsersToken;
 
     public Users save(UsersSignInRequest request) {
         return usersRepository.save(request.toEntity());
@@ -87,11 +82,10 @@ public class UsersService {
         return resultMap;
     }
 
-    public Users getUserInfo(HttpServletRequest request) {
-        String bearerToken = tokenProvider.resolveToken(request);
-        if (!UsersUtil.isLogin())
+    public Users getUserInfo(String token) {
+        if (tokenProvider.validToken(token))
             throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
-        return tokenProvider.getUserInfo(bearerToken);
+        return tokenProvider.getUserInfo(token);
     }
 
     public boolean signOut(HttpServletRequest request, HttpServletResponse response) {

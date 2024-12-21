@@ -1,10 +1,7 @@
 package com.issuemoa.users.presentation.jwt;
 
 import com.issuemoa.users.domain.users.Users;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -76,10 +73,19 @@ public class TokenProvider {
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey())
+        try {
+            // JWT 파싱
+            return Jwts.parserBuilder().setSigningKey(jwtProperties.getSecretKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
+        } catch (MalformedJwtException e) {
+            log.error("[getClaims] MalformedJwtException Message : {}", e.getMessage());
+        } catch (JwtException e) {
+            log.error("[getClaims] JwtException Message : {}", e.getMessage());
+        }
+
+        return null;
     }
 
     /**

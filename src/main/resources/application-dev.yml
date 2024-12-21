@@ -9,4 +9,4 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://gate.issuemoa.kr:8761/eureka
+      defaultZone: http://localhost:8761/eureka

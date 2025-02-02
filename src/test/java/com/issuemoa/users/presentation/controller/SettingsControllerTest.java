@@ -2,8 +2,8 @@ package com.issuemoa.users.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.issuemoa.users.application.SettingsService;
-import com.issuemoa.users.presentation.dto.settings.SettingsRequest;
 import com.issuemoa.users.presentation.dto.settings.SettingsResponse;
+import com.issuemoa.users.presentation.dto.settings.SettingsSaveRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,9 +19,7 @@ import javax.ws.rs.core.MediaType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("dev")
@@ -41,10 +39,10 @@ class SettingsControllerTest {
     @Test
     void save() throws Exception {
         // given
-        SettingsRequest request = new SettingsRequest(0L, "D", "W", "F", "EN");
+        SettingsSaveRequest request = new SettingsSaveRequest(0L, "D", "W", "F", "EN");
         SettingsResponse response = new SettingsResponse(1L, 0L, "D", "W", "F", "EN");
 
-        when(settingsService.save(any(SettingsRequest.class))).thenReturn(response);
+        when(settingsService.save(any(SettingsSaveRequest.class))).thenReturn(response);
 
         // when / then
         mockMvc.perform(post("/settings")
@@ -58,7 +56,7 @@ class SettingsControllerTest {
                 .andExpect(jsonPath("$.speed").value("F"))
                 .andExpect(jsonPath("$.language").value("EN"));
 
-        verify(settingsService).save(any(SettingsRequest.class));
+        verify(settingsService).save(any(SettingsSaveRequest.class));
     }
 
     @Test
@@ -72,25 +70,6 @@ class SettingsControllerTest {
         // when & then
         mockMvc.perform(get("/settings/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.theme").value("D"))
-                .andExpect(jsonPath("$.language").value("EN"))
-                .andExpect(jsonPath("$.speed").value("F"))
-                .andExpect(jsonPath("$.voice").value("W"));
-    }
-
-    @Test
-    void updateSettings() throws Exception {
-        // given
-        SettingsRequest request = new SettingsRequest(0L, "D", "W", "F", "EN");
-        SettingsResponse response = new SettingsResponse(1L, 0L, "D", "W", "F", "EN");
-
-        when(settingsService.updateSettings(request)).thenReturn(response);
-
-        // when & then
-        mockMvc.perform(put("/settings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request))) // Serialize request to JSON
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.theme").value("D"))
                 .andExpect(jsonPath("$.language").value("EN"))

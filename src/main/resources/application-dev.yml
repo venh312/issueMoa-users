@@ -8,5 +8,4 @@ spring:
       - optional:configserver:http://gate.issuemoa.kr:8888
 eureka:
   client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+    enabled: false

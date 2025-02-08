@@ -1,12 +1,12 @@
 package com.issuemoa.users.presentation.jwt;
 
+import com.issuemoa.users.domain.exception.UsersNotFoundException;
 import com.issuemoa.users.domain.users.Users;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
 import java.security.Key;
 import java.time.Duration;
 import java.util.Collections;
@@ -67,7 +68,12 @@ public class TokenProvider {
     }
 
     // 토큰 기반으로 유저 ID 조회
-    public Long getUserId(String token) {
+    public Long getUserId(HttpServletRequest request) {
+        String token = resolveToken(request);
+
+        if (token.isEmpty())
+            throw new UsersNotFoundException("존재하지 않는 사용자입니다.");
+
         Claims claims = getClaims(token);
         return claims.get("id", Long.class);
     }
@@ -102,9 +108,10 @@ public class TokenProvider {
                     .build();
     }
 
-    public String resolveToken(String bearerToken) {
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer"))
-            return bearerToken.substring(7);
+    public String resolveToken(HttpServletRequest request) {
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer"))
+            return authorization.substring(7);
         return "";
     }
 }

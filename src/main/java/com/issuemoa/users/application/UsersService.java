@@ -1,6 +1,6 @@
 package com.issuemoa.users.application;
 
-import com.issuemoa.users.domain.exception.NotFoundUsersException;
+import com.issuemoa.users.domain.exception.UsersNotFoundException;
 import com.issuemoa.users.domain.redis.RedisRepository;
 import com.issuemoa.users.domain.users.Users;
 import com.issuemoa.users.domain.users.UsersRepository;
@@ -31,15 +31,15 @@ public class UsersService {
     }
 
     public Users findById(Long id) {
-        return usersRepository.findById(id).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+        return usersRepository.findById(id).orElseThrow(() -> new UsersNotFoundException("존재하지 않는 사용자입니다."));
     }
 
     public Users findByUid(String uid) {
-        return usersRepository.findByUid(uid).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+        return usersRepository.findByUid(uid).orElseThrow(() -> new UsersNotFoundException("존재하지 않는 사용자입니다."));
     }
 
     public Users findByEmail(String email) {
-        return usersRepository.findByEmail(email).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+        return usersRepository.findByEmail(email).orElseThrow(() -> new UsersNotFoundException("존재하지 않는 사용자입니다."));
     }
 
     // 리프레시 토큰으로 새로운 토큰을 생성 한다.
@@ -54,10 +54,10 @@ public class UsersService {
         String userId = redisRepository.findByKey(refreshToken);
 
         if (!StringUtils.hasText(userId))
-            throw new NotFoundUsersException("존재하지 않는 사용자입니다.");
+            throw new UsersNotFoundException("존재하지 않는 사용자입니다.");
 
         // 사용자 정보 조회
-        Users users = usersRepository.findById(Long.valueOf(userId)).orElseThrow(() -> new NotFoundUsersException("존재하지 않는 사용자입니다."));
+        Users users = usersRepository.findById(Long.valueOf(userId)).orElseThrow(() -> new UsersNotFoundException("존재하지 않는 사용자입니다."));
 
         // accessToken 발급
         String accessToken =  tokenProvider.generateToken(users, Duration.ofMinutes(60));
@@ -82,10 +82,10 @@ public class UsersService {
         return resultMap;
     }
 
-    public Users getUserInfo(String bearerToken) {
-        String token = tokenProvider.resolveToken(bearerToken);
+    public Users getUserInfo(HttpServletRequest request) {
+        String token = tokenProvider.resolveToken(request);
         if (token.isEmpty())
-            throw new NotFoundUsersException("존재하지 않는 사용자 입니다.");
+            throw new UsersNotFoundException("존재하지 않는 사용자 입니다.");
         return tokenProvider.getUserInfo(token);
     }
 

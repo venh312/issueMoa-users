@@ -29,7 +29,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    public static final Duration ACCESS_TOKEN_DURATION = Duration.ofMinutes(60);
+    public static final Duration ACCESS_TOKEN_DURATION = Duration.ofMinutes(30);
     public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
 
     private final Environment environment;

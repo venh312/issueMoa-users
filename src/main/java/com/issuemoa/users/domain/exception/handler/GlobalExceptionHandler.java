@@ -1,6 +1,6 @@
 package com.issuemoa.users.domain.exception.handler;
 
-import com.issuemoa.users.domain.exception.NotFoundUsersException;
+import com.issuemoa.users.domain.exception.UsersNotFoundException;
 import com.issuemoa.users.presentation.message.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +24,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(NotFoundUsersException.class)
-    public ResponseEntity<ErrorMessage> handleUsersNotFoundException(NotFoundUsersException ex) {
+    @ExceptionHandler(UsersNotFoundException.class)
+    public ResponseEntity<ErrorMessage> handleUsersNotFoundException(UsersNotFoundException ex) {
         List<String> errors = new ArrayList<>();
         errors.add(ex.getMessage());
 

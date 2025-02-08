@@ -23,7 +23,7 @@ public class OpenApiConfig {
                 .name("Authorization")
                 .bearerFormat("JWT")
                 .in(SecurityScheme.In.HEADER)
-                .description("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjb25mMzEyQGtha2FvLmNvbSIsIm5hbWUiOiLslYzsiJjsl4bsnYwiLCJpZCI6NCwiYXV0aCI6IklTU1VFTU9BX1VTRVIiLCJleHAiOjE3MDQ5NzkzMjl9.gzXnASGdtoiVQgh57cJqnxREkVGZTFvade8ppCb_yTQKfTMNLashMxD5cZ8FvHPMFTNcC0arvXbQ-vqIxViyvQ");
+                .description("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJncGZtMzEyQGdtYWlsLmNvbSIsImlhdCI6MTczODk4NDE0MiwiZXhwIjozNzM4OTg3NzQyLCJzdWIiOiJkZXZAaXNzdWVtb2Eua3IiLCJpZCI6NywibmFtZSI6Iu2FjOyKpO2EsCJ9.oBxyCqB5a-6hkbGCG9QMBjbxStT-myh5AEOSDUzReTffTEd5r279ntLwMv84KC3AIkgo5sfJTQjtKBQ5IN5XEA");
 
         SecurityScheme apiKeyScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
@@ -36,7 +36,6 @@ public class OpenApiConfig {
                 .addList("Authorization")
                 .addList("X-Client-Key");
 
-        // Create securityRequirements object
         return new OpenAPI()
             .info(new Info().title("사용자 인증∙인가 API").version("1.0"))
             .addServersItem(server)
